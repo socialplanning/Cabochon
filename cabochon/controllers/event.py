@@ -20,21 +20,27 @@
 from cabochon.lib.base import *
 from cabochon.models import *
 from pylons.decorators.rest import dispatch_on
+from sqlobject.dberrors import DuplicateEntryError
 
 class EventController(BaseController):
     @dispatch_on(POST='create_event')
+    @jsonify
     def index(self):
-        pass
+        return [{'id' : e.id, 'name' : e.name} for e in EventType.select()]
+
 
     @jsonify
-    def handlers(self, id):
+    def subscribers(self, id):
         event = EventType.get(id)
-        return [{'id' : h.id, 'url' : h.url, 'method' : h.method} for h in event.handlers]
+        return [{'id' : h.id, 'url' : h.url, 'method' : h.method} for h in event.subscribers]
 
     @jsonify
     def create_event(self):
-        event = EventType(service=Service.selectBy(name=request.params['service'])[0], name=request.params['name'])
-        return event.id
+        try:
+            event = EventType(name=request.params['name'])
+        except DuplicateEntryError:
+            event = EventType.selectBy(name=request.params['name'])[0]
+        return h.url_for(action='add_subscriber', id=event.id)
 
     @jsonify
     @dispatch_on(POST='do_handle')
@@ -43,10 +49,16 @@ class EventController(BaseController):
 
     def do_handle(self, id):
         event = EventType.get(id)
-        for h in event.handlers:
-            h.handle(params=request.params)
+
+        def insert_events(event=event, data=request.params):
+            for h in event.subscribers:
+                PendingEvent(subscriber=h, data=data)
+
+        do_in_transaction(insert_events)
+        
         return ['accepted']
 
     @jsonify
-    def add_handler(self, id):
-        return Handler(event_type=EventType.get(id),url=request.params['url'],method=request.params['url']).id
+    def add_subscriber(self, id):
+        subscriber = Subscriber(event_type=EventType.get(id), url=request.params['url'], method=request.params['url'])
+        return h.url_for(action='handle', id=subscriber.id)
