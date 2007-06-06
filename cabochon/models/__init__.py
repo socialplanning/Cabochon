@@ -1,6 +1,21 @@
-## NOTE
-##   If you plan on using SQLObject, the following should be un-commented and provides
-##   a starting point for setting up your schema
+# Copyright (C) 2007 The Open Planning Project
+
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the
+# Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor,
+# Boston, MA  02110-1301
+# USA
 
 from sqlobject import *
 from pylons.database import PackageHub
@@ -24,19 +39,23 @@ class Subscriber(SQLObject):
     url = UnicodeCol(default=u"")
     method = UnicodeCol(default=u"POST")
 
-    def handle(self,params):
-        """ make the necessary request in response to the event being triggered """
-        rest_invoke(self.url,method=self.method,params=params,async=True)
-
 class PendingEvent(SQLObject):
+    event_type = ForeignKey('EventType', cascade=True)
     subscriber = ForeignKey('Subscriber')
-    data = UnicodeCol()
-
+    data = StringCol()
+    last_response = UnicodeCol(default="") #for debugging, the last thing we got when we tried to send this
+    
     def _set_data(self, value):
         return self._SO_set_data(dumps(value))
 
     def _get_data(self):
         return loads(self._SO_get_data())
+
+    def handle(self):
+        sub = self.subscriber
+        response = rest_invoke(sub.url,method=sub.method,params=self.data,resp=True)
+        if response[1] != '"accepted"':
+            return response
 
 soClasses=[EventType,Subscriber, PendingEvent]
 

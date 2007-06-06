@@ -1,4 +1,6 @@
+COPYING
 README.txt
+development.ini
 setup.cfg
 setup.py
 Cabochon.egg-info/PKG-INFO
@@ -10,6 +12,7 @@ Cabochon.egg-info/paster_plugins.txt
 Cabochon.egg-info/requires.txt
 Cabochon.egg-info/top_level.txt
 cabochon/__init__.py
+cabochon/send_event.py
 cabochon/websetup.py
 cabochon/config/__init__.py
 cabochon/config/environment.py
@@ -18,14 +21,17 @@ cabochon/config/routing.py
 cabochon/controllers/__init__.py
 cabochon/controllers/error.py
 cabochon/controllers/event.py
-cabochon/controllers/service.py
 cabochon/controllers/template.py
+cabochon/docs/index.txt
 cabochon/i18n/__init__.py
 cabochon/lib/__init__.py
 cabochon/lib/app_globals.py
 cabochon/lib/base.py
 cabochon/lib/helpers.py
 cabochon/models/__init__.py
+cabochon/templates/autohandler
 cabochon/tests/__init__.py
 cabochon/tests/test_models.py
 cabochon/tests/functional/__init__.py
+ez_setup/README.txt
+ez_setup/__init__.py

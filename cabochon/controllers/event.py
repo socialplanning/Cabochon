@@ -51,8 +51,8 @@ class EventController(BaseController):
         event = EventType.get(id)
 
         def insert_events(event=event, data=request.params):
-            for h in event.subscribers:
-                PendingEvent(subscriber=h, data=data)
+            for s in event.subscribers:
+                PendingEvent(event_type = event, subscriber = s, data=data)
 
         do_in_transaction(insert_events)
         
