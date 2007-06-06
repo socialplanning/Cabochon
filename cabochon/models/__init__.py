@@ -7,7 +7,7 @@ from pylons.database import PackageHub
 from restclient import rest_invoke
 from pickle import dumps, loads
 
-hub = PackageHub("cabochon")
+hub = PackageHub("cabochon", pool_connections=False)
 __connection__ = hub
 
 # You should then import your SQLObject classes
