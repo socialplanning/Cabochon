@@ -43,11 +43,11 @@ class EventController(BaseController):
         return h.url_for(action='add_subscriber', id=event.id)
 
     @jsonify
-    @dispatch_on(POST='do_handle')
-    def handle(self, id):
+    @dispatch_on(POST='do_fire')
+    def fire(self, id):
         pass
 
-    def do_handle(self, id):
+    def do_fire(self, id):
         event = EventType.get(id)
 
         def insert_events(event=event, data=request.params):
@@ -56,9 +56,9 @@ class EventController(BaseController):
 
         do_in_transaction(insert_events)
         
-        return ['accepted']
+        return 'accepted'
 
     @jsonify
     def add_subscriber(self, id):
-        subscriber = Subscriber(event_type=EventType.get(id), url=request.params['url'], method=request.params['url'])
-        return h.url_for(action='handle', id=subscriber.id)
+        subscriber = Subscriber(event_type=EventType.get(id), url=request.params['url'], method=request.params['method'])
+        return h.url_for(action='fire', id=subscriber.id)
