@@ -23,7 +23,7 @@ import cabochon.lib.helpers as h
 from wsgiutils import wsgiServer
 import paste
 from threading import Thread
-from simplejson.decoder import JSONDecoder
+from simplejson import loads as fromjson
 from paste.util.multidict import MultiDict
 
 class TestCabochonController(TestController):
@@ -31,15 +31,14 @@ class TestCabochonController(TestController):
     def test_cabochon(self):
         test_server = CabochonTestServer()
         test_server.start()
-        decode = JSONDecoder().decode
         
         res = self.app.post(h.url_for(controller='event'), params={'name' : 'test_event'})
-        subscribe_url = decode(res.body)
+        subscribe_url = fromjson(res.body)
         res = self.app.post(subscribe_url, params={'url' : 'http://localhost:10424/test', 'method' : 'POST'})
-        fire_url = decode(res.body)
+        fire_url = fromjson(res.body)
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
-        assert decode(res.body) == "accepted"
+        assert fromjson(res.body) == "accepted"
 
         send_all_pending_events()
 
