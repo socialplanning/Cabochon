@@ -40,7 +40,7 @@ class EventController(BaseController):
             event = EventType(name=request.params['name'])
         except DuplicateEntryError:
             event = EventType.selectBy(name=request.params['name'])[0]
-        return h.url_for(action='add_subscriber', id=event.id)
+        return h.url_for(action='subscribe', id=event.id)
 
     @jsonify
     @dispatch_on(POST='do_fire')
@@ -59,6 +59,6 @@ class EventController(BaseController):
         return 'accepted'
 
     @jsonify
-    def add_subscriber(self, id):
+    def subscribe(self, id):
         subscriber = Subscriber(event_type=EventType.get(id), url=request.params['url'], method=request.params['method'])
         return h.url_for(action='fire', id=subscriber.id)

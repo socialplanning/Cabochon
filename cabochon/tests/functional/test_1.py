@@ -66,14 +66,16 @@ class CabochonServerFixture:
 
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
+        req = paste.wsgiwrappers.WSGIRequest(environ)
+        
+        self.requests_received.append({'path' :  environ['PATH_INFO'], 'method' : environ['REQUEST_METHOD'], 'params' : req.params})        
         if path_info == '/error':
             status = '500 Server Error'
+            start_response(status, [('Content-type', 'text/plain')])
+            return ['you lose']            
         else:
             status = '200 OK'
             start_response(status, [('Content-type', 'text/plain')])
-            req = paste.wsgiwrappers.WSGIRequest(environ)
-            
-            self.requests_received.append({'path' :  environ['PATH_INFO'], 'method' : environ['REQUEST_METHOD'], 'params' : req.params})
             return ['"accepted"']
 
         
