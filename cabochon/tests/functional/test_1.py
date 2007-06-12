@@ -18,19 +18,27 @@
 # USA
 
 from cabochon.tests import *
+from cabochon.tests.functional import CabochonTestServer
 from cabochon.lib.send_event import send_all_pending_events
+from cabochon.models import *
 import cabochon.lib.helpers as h
-from wsgiutils import wsgiServer
-import paste
-from threading import Thread
 from simplejson import loads as fromjson
 from paste.util.multidict import MultiDict
 
-class TestCabochonController(TestController):
+test_server = CabochonTestServer()
+test_server.start()
 
+class TestCabochonController(TestController):
+    def setUp(self):
+        test_server.server_fixture.clear()
+        for e in EventType.select():
+            e.destroySelf()
+        for s in Subscriber.select():
+            s.destroySelf()
+        for p in PendingEvent.select():
+            p.destroySelf()            
+        
     def test_cabochon(self):
-        test_server = CabochonTestServer()
-        test_server.start()
         
         res = self.app.post(h.url_for(controller='event'), params={'name' : 'test_event'})
         subscribe_url = fromjson(res.body)
@@ -47,35 +55,22 @@ class TestCabochonController(TestController):
         assert server_fixture.requests_received == [{'path': '/test', 'params': MultiDict([('fleem', '2'), ('morx', '[1]')]), 'method': 'POST'}]
 
 
-class CabochonTestServer(Thread):
-    def __init__(self):
-        Thread.__init__(self)
-        self.setDaemon(True)
+    def test_redirect(self):
+        res = self.app.post(h.url_for(controller='event'), params={'name' : 'test_event'})
+        subscribe_url = fromjson(res.body)       
+        res = self.app.post(subscribe_url, params={'url' : 'http://localhost:10424/elsewhere', 'method' : 'POST', 'redirections': 0})
+
+        fire_url = fromjson(res.body)
         
-    def run(self):
-        self.server_fixture = CabochonServerFixture()
-        server = wsgiServer.WSGIServer (('localhost', 10424), {'/': self.server_fixture})
-        server.serve_forever()
+        res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
+        assert fromjson(res.body) == "accepted"
 
-class CabochonServerFixture:
-    def __init__(self):
-        self.requests_received = []
+        send_all_pending_events()
 
-    def clear(self):
-        self.requests_received = []
+        server_fixture = test_server.server_fixture
+        print server_fixture.requests_received
+        assert server_fixture.requests_received == [{'path': '/elsewhere', 'params': MultiDict([('fleem', '2'), ('morx', '[1]')]), 'method': 'POST'}]
 
-    def __call__(self, environ, start_response):
-        path_info = environ.get('PATH_INFO', '')
-        req = paste.wsgiwrappers.WSGIRequest(environ)
-        
-        self.requests_received.append({'path' :  environ['PATH_INFO'], 'method' : environ['REQUEST_METHOD'], 'params' : req.params})        
-        if path_info == '/error':
-            status = '500 Server Error'
-            start_response(status, [('Content-type', 'text/plain')])
-            return ['you lose']            
-        else:
-            status = '200 OK'
-            start_response(status, [('Content-type', 'text/plain')])
-            return ['"accepted"']
 
         
+

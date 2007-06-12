@@ -19,8 +19,10 @@
 
 from sqlobject import *
 from pylons.database import PackageHub
-from restclient import rest_invoke
 from pickle import dumps, loads
+from paste.util.multidict import MultiDict
+import urllib
+import httplib2
 
 hub = PackageHub("cabochon", pool_connections=False)
 __connection__ = hub
@@ -37,7 +39,47 @@ class EventType(SQLObject):
 class Subscriber(SQLObject):
     event_type = ForeignKey('EventType',cascade=True)
     url = UnicodeCol(default=u"")
-    method = UnicodeCol(default=u"POST")
+    method = StringCol(default=u"POST")
+    queryString = StringCol(default=u'')
+    body = StringCol(default=u'')
+    username = StringCol(default=u'')
+    password = StringCol(default=u'')
+    params = StringCol(default=u'')
+    headers = StringCol(default=u'')
+    redirections = IntCol(default=5)
+    follow_all_redirects = BoolCol(default=False)
+    version = StringCol(default=u'')
+    
+    def _set_redirections(self, value):
+        return self._SO_set_redirections(int(value))
+
+    def _set_params(self, value):
+        return self._SO_set_params(dumps(value))
+
+    def _get_params(self):
+        params = self._SO_get_params()
+        if params:
+            params = loads(params)
+            if params:
+                return params
+            else:
+                return {}
+        else:
+            return None
+    
+    def _set_headers(self, value):
+        return self._SO_set_headers(dumps(value))
+
+    def _get_headers(self):
+        headers = self._SO_get_headers()
+        if headers:
+            headers = loads(headers)
+            if headers:
+                return headers
+            else:
+                return []
+        else:
+            return []
 
 class PendingEvent(SQLObject):
     event_type = ForeignKey('EventType', cascade=True)
@@ -53,7 +95,37 @@ class PendingEvent(SQLObject):
 
     def handle(self):
         sub = self.subscriber
-        response = rest_invoke(sub.url,method=sub.method,params=self.data,resp=True)
+        params = sub.params
+        if not params:
+            params = {}
+        params.update(self.data)
+        h = httplib2.Http()
+        h.follow_all_redirects = sub.follow_all_redirects
+        headers = MultiDict(sub.headers)
+        body = sub.body
+        
+        if sub.username:
+            h.add_credentials(sub.username, sub.password)
+       
+        if sub.method == "GET":
+            #merge params with query string
+            qs = sub.queryString
+            if qs:
+                qs += "&"
+            else:
+                qs = "?"
+            qs += urllib.urlencode(params)
+
+            headers['Content-Length'] = '0'
+        else:
+            body = urllib.urlencode(params)
+            headers['Content-Length'] = str(len(body))
+            
+        if not headers.has_key('Content-Type'):
+            headers['Content-Type'] = 'application/x-www-form-urlencoded'
+
+        response = h.request(sub.url, method=sub.method, body=body, headers=headers, redirections=sub.redirections)
+
         if response[1] != '"accepted"':
             return response
 

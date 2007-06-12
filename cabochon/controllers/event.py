@@ -60,5 +60,6 @@ class EventController(BaseController):
 
     @jsonify
     def subscribe(self, id):
-        subscriber = Subscriber(event_type=EventType.get(id), url=request.params['url'], method=request.params['method'])
-        return h.url_for(action='fire', id=subscriber.id)
+        event_type = EventType.get(id)
+        subscriber = Subscriber(event_type=event_type, **dict(request.params))
+        return h.url_for(action='fire', id=event_type.id)
