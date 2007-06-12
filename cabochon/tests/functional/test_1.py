@@ -41,9 +41,10 @@ class TestCabochonController(TestController):
     def test_cabochon(self):
         
         res = self.app.post(h.url_for(controller='event'), params={'name' : 'test_event'})
-        subscribe_url = fromjson(res.body)
+        urls = fromjson(res.body)
+        fire_url = urls['fire']
+        subscribe_url = urls['subscribe']
         res = self.app.post(subscribe_url, params={'url' : 'http://localhost:10424/test', 'method' : 'POST'})
-        fire_url = fromjson(res.body)
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
         assert fromjson(res.body) == "accepted"
@@ -57,10 +58,10 @@ class TestCabochonController(TestController):
 
     def test_redirect(self):
         res = self.app.post(h.url_for(controller='event'), params={'name' : 'test_event'})
-        subscribe_url = fromjson(res.body)       
+        urls = fromjson(res.body)
+        fire_url = urls['fire']
+        subscribe_url = urls['subscribe']
         res = self.app.post(subscribe_url, params={'url' : 'http://localhost:10424/elsewhere', 'method' : 'POST', 'redirections': 0})
-
-        fire_url = fromjson(res.body)
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
         assert fromjson(res.body) == "accepted"
@@ -68,7 +69,6 @@ class TestCabochonController(TestController):
         send_all_pending_events()
 
         server_fixture = test_server.server_fixture
-        print server_fixture.requests_received
         assert server_fixture.requests_received == [{'path': '/elsewhere', 'params': MultiDict([('fleem', '2'), ('morx', '[1]')]), 'method': 'POST'}]
 
 
