@@ -84,7 +84,7 @@ class EventController(BaseController):
 
     @jsonify
     def do_unsubscribe_by_event(self, id):
-        event_type = EventType.selectBy(name=request.params['event'])
+        event_type = EventType.selectBy(name=request.params['event'])[0]
         subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
         try:
             subscriber = subscriber[0]
