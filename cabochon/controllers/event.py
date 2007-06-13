@@ -62,14 +62,49 @@ class EventController(BaseController):
     @jsonify
     def subscriptions(self, id):
         event_type = EventType.get(id)
-        subscriber = Subscriber.select(event_type=event_type, url=request.params['url'])
+        subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
+        try:
+            subscriber = subscriber[0]
+            return {'unsubscribe' : h.url_for(action='unsubscribe', id=subscriber.id),
+                    'fire' : h.url_for(action='fire', id=event_type.id)}
+        except:
+            return None
+
+    @dispatch_on(POST='do_unsubscribe')
+    def unsubscribe(self, id):
+        pass
 
     @jsonify
-    def unsubscribe(self, id):
+    def do_unsubscribe(self, id):
         Subscriber.get(id).destroySelf()
 
+    @dispatch_on(POST='do_unsubscribe_by_event')
+    def unsubscribe_by_event(self, id):
+        pass
+
     @jsonify
+    def do_unsubscribe_by_event(self, id):
+        event_type = EventType.selectBy(name=request.params['event'])
+        subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
+        try:
+            subscriber = subscriber[0]
+            subscriber.destroySelf
+            return True
+        except:
+            return False
+
+
+    @dispatch_on(POST='do_subscribe')
     def subscribe(self, id):
+        pass
+
+    @jsonify
+    def do_subscribe(self, id):
         event_type = EventType.get(id)
-        subscriber = Subscriber(event_type=event_type, **dict(request.params))
+        subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
+        try:
+            subscriber = subscriber[0]
+            subscriber.set(request.params)
+        except:
+            subscriber = Subscriber(event_type=event_type, **dict(request.params))
         return h.url_for(action='unsubscribe', id=subscriber.id)

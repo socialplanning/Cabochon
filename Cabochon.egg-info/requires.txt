@@ -2,3 +2,4 @@ Pylons>=0.9.5
 SQLObject
 restclient
 wsgiutils
+simplejson

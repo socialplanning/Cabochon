@@ -9,7 +9,7 @@ setup(
     #author="",
     #author_email="",
     #url="",
-    install_requires=["Pylons>=0.9.5", "SQLObject", "restclient", "wsgiutils"],
+    install_requires=["Pylons>=0.9.5", "SQLObject", "restclient", "wsgiutils", "httplib2", "simplejson"],
     packages=find_packages(),
     include_package_data=True,
     test_suite = 'nose.collector',

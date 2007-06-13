@@ -10,6 +10,8 @@ preventable by having servers annotate data that is the result of
 a message with some message id, and discard messages which duplicate
 already-processed messages.
 
+Restriction: You can't have multiple subscribers at the same URL.  
+
 
 Installation and Setup
 ======================
