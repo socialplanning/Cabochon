@@ -88,7 +88,7 @@ class EventController(BaseController):
         subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
         try:
             subscriber = subscriber[0]
-            subscriber.destroySelf
+            subscriber.destroySelf()
             return True
         except:
             return False

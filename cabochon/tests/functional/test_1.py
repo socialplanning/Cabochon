@@ -101,3 +101,31 @@ class TestCabochonController(TestController):
 
         
 
+    def test_unsub_by_event(self):
+        res = self.app.post(h.url_for(controller='event'), params={'name' : 'grib'})
+        urls = fromjson(res.body)
+        fire_url = urls['fire']
+        subscribe_url = urls['subscribe']
+
+        #subscribe and send a message
+        res = self.app.post(subscribe_url, params={'url' : 'http://localhost:10424/morx/fleem', 'method' : 'POST'})
+        
+        res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
+        assert fromjson(res.body) == "accepted"
+
+        send_all_pending_events()
+
+        #now unsubscribe and send a message
+        res = self.app.post(h.url_for(controller='event', action='unsubscribe_by_event'), params={'url' : 'http://localhost:10424/morx/fleem', 'event' : 'grib'})
+        
+        res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
+        assert fromjson(res.body) == "accepted"
+        
+        send_all_pending_events()
+
+        #we only get the first message
+        server_fixture = test_server.server_fixture
+        assert server_fixture.requests_received == [{'path': '/morx/fleem', 'params': MultiDict([('fleem', '2'), ('morx', '[1]')]), 'method': 'POST'}]
+
+        
+
