@@ -19,6 +19,7 @@
 
 from cabochon.models import *
 from threading import Thread
+from thread import interrupt_main
 import paste
 import pylons
 import traceback
@@ -38,7 +39,7 @@ def process_event(subscriber):
             top_event = PendingEvent.selectBy(subscriber=subscriber).orderBy("id").limit(1)
             try:
                 top_event = top_event[0]
-            except:
+            except IndexError:
                  #no more events for this subscriber
                 return
 
@@ -50,7 +51,8 @@ def process_event(subscriber):
                 return False # failed to handle one
 
             return True #handled one successfully
-
+        except KeyboardInterrupt:
+            interrupt_main()
         except Exception, e:
             traceback.print_exc()
     finally:

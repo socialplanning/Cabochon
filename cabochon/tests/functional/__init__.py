@@ -6,11 +6,11 @@ class CabochonTestServer(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.setDaemon(True)
-        
+
     def run(self):
         self.server_fixture = CabochonServerFixture()
-        server = wsgiServer.WSGIServer (('localhost', 10424), {'/': self.server_fixture})
-        server.serve_forever()
+        server = wsgiServer.WSGIServer (('localhost', 10424), {'/': self.server_fixture}, serveFiles = False)
+        server.serve_forever()       
 
 class CabochonServerFixture:
     def __init__(self):
