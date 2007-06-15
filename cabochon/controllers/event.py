@@ -104,7 +104,7 @@ class EventController(BaseController):
         subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
         try:
             subscriber = subscriber[0]
-            subscriber.set(request.params)
-        except:
+            subscriber.set(**dict(request.params))
+        except IndexError:
             subscriber = Subscriber(event_type=event_type, **dict(request.params))
         return h.url_for(action='unsubscribe', id=subscriber.id)
