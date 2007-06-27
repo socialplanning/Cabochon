@@ -86,6 +86,7 @@ class PendingEvent(SQLObject):
     subscriber = ForeignKey('Subscriber')
     data = StringCol()
     last_response = UnicodeCol(default="") #for debugging, the last thing we got when we tried to send this
+    failures = IntCol(default=0)
     
     def _set_data(self, value):
         return self._SO_set_data(dumps(value))

@@ -48,6 +48,7 @@ def process_event(subscriber):
                 top_event.destroySelf()
             else:
                 top_event.last_response = "%s %s" % response
+                top_event.failures += 1
                 return False # failed to handle one
 
             return True #handled one successfully
