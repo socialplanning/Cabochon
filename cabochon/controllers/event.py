@@ -36,10 +36,12 @@ class EventController(BaseController):
 
     @jsonify
     def create_event(self):
+        name = request.params['name']
         try:
-            event = EventType(name=request.params['name'])
+            event = EventType(name=name)
+            g.log("Created event %s" % name) 
         except DuplicateEntryError:
-            event = EventType.selectBy(name=request.params['name'])[0]
+            event = EventType.selectBy(name=name)[0]
         return {'subscribe' : h.url_for(action='subscribe', id=event.id),
                 'fire' : h.url_for(action='fire', id=event.id)}
 
@@ -56,7 +58,8 @@ class EventController(BaseController):
                 PendingEvent(event_type = event, subscriber = s, data=data)
 
         do_in_transaction(insert_events)
-        
+
+        g.log("Fired event %s" % event.name) 
         return 'accepted'
 
     @jsonify
@@ -77,7 +80,8 @@ class EventController(BaseController):
     @jsonify
     def do_unsubscribe(self, id):
         Subscriber.get(id).destroySelf()
-
+        g.log("Deleted subscription %d" % id)
+        
     @dispatch_on(POST='do_unsubscribe_by_event')
     def unsubscribe_by_event(self, id):
         pass
@@ -88,6 +92,7 @@ class EventController(BaseController):
         subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
         try:
             subscriber = subscriber[0]
+            g.log("Deleted subscription" % subscriber.id)            
             subscriber.destroySelf()
             return True
         except:
@@ -105,6 +110,9 @@ class EventController(BaseController):
         try:
             subscriber = subscriber[0]
             subscriber.set(**dict(request.params))
+            g.log("New subscription %s to %s at %s" % (subscriber.id, event_type.name, request.params['url']))
         except IndexError:
             subscriber = Subscriber(event_type=event_type, **dict(request.params))
+            g.log("Updated subscription %s to %s at %s" % (subscriber.id, event_type.name, request.params['url']))
+
         return h.url_for(action='unsubscribe', id=subscriber.id)

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 class Globals(object):
 
     def __init__(self, global_conf, app_conf, **extra):
@@ -25,7 +27,17 @@ class Globals(object):
             your global variables.
             
         """
-        pass
+
+        log_file = app_conf.get('log_file')
+        if log_file:
+            f = open("log_file", "a")
+            def do_log(message, f=f):
+                now = datetime.now()
+                print >>f, "%s %s" % (now, message)
+                f.flush()
+            self.log = do_log
+        else:
+            self.log = lambda message: None
         
     def __del__(self):
         """
