@@ -1,4 +1,4 @@
-from datetime import datetime
+from logger import Logger
 
 class Globals(object):
 
@@ -30,12 +30,7 @@ class Globals(object):
 
         log_file = app_conf.get('log_file')
         if log_file:
-            f = open("log_file", "a")
-            def do_log(message, f=f):
-                now = datetime.now()
-                print >>f, "%s %s" % (now, message)
-                f.flush()
-            self.log = do_log
+            self.log = Logger(log_file)
         else:
             self.log = lambda message: None
         
