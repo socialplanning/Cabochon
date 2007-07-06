@@ -1,14 +1,22 @@
 from threading import Thread
 from wsgiutils import wsgiServer
 import paste
+import time
 
 class CabochonTestServer(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.setDaemon(True)
+        self._server_fixture = None
+        
+    @property
+    def server_fixture(self):
+        while not self._server_fixture:
+            time.sleep(0)
+        return self._server_fixture
 
     def run(self):
-        self.server_fixture = CabochonServerFixture()
+        self._server_fixture = CabochonServerFixture()
         server = wsgiServer.WSGIServer (('localhost', 10424), {'/': self.server_fixture}, serveFiles = False)
         server.serve_forever()       
 

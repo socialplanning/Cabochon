@@ -89,6 +89,7 @@ class TestCabochonController(TestController):
 
         #now unsubscribe and send a message
         res = self.app.post(unsubscribe_url)
+        assert res.body == "true"
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
         assert fromjson(res.body) == "accepted"
@@ -117,6 +118,7 @@ class TestCabochonController(TestController):
 
         #now unsubscribe and send a message
         res = self.app.post(h.url_for(controller='event', action='unsubscribe_by_event'), params={'url' : 'http://localhost:10424/morx/fleem', 'event' : 'grib'})
+        assert res.body == "true"
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
         assert fromjson(res.body) == "accepted"

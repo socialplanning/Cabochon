@@ -79,8 +79,13 @@ class EventController(BaseController):
 
     @jsonify
     def do_unsubscribe(self, id):
-        Subscriber.get(id).destroySelf()
-        g.log("Deleted subscription %d" % id)
+        try:
+            Subscriber.get(id).destroySelf()
+            g.log("Deleted subscription %s" % id)
+        except:
+            g.log("Failed to delete subscription %s (probably no such thing)" % id)
+            return False
+        return True
         
     @dispatch_on(POST='do_unsubscribe_by_event')
     def unsubscribe_by_event(self, id):
@@ -92,11 +97,12 @@ class EventController(BaseController):
         subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
         try:
             subscriber = subscriber[0]
-            g.log("Deleted subscription" % subscriber.id)            
+            g.log("Deleted subscription %s (by event %s)" % (subscriber.id, request.params['event']))
             subscriber.destroySelf()
-            return True
         except:
+            g.log("Failed to delete subscription %s (by event %s)" % (subscriber.id, request.params['event']))
             return False
+        return True
 
 
     @dispatch_on(POST='do_subscribe')
