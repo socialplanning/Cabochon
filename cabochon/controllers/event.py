@@ -50,17 +50,31 @@ class EventController(BaseController):
     def fire(self, id):
         pass
 
+    def _insert_events(self, event, data):
+        for s in event.subscribers:
+            PendingEvent(event_type = event, subscriber = s, data=data)
+            
     def do_fire(self, id):
         event = EventType.get(id)
 
-        def insert_events(event=event, data=request.params):
-            for s in event.subscribers:
-                PendingEvent(event_type = event, subscriber = s, data=data)
-
-        do_in_transaction(insert_events)
+        do_in_transaction(lambda:self._insert_events(event, request.params))
 
         g.log("Fired event %s" % event.name) 
         return 'accepted'
+
+    @jsonify
+    @dispatch_on(POST='do_fire_by_name')
+    def fire_by_name(self, id):
+        pass
+
+    def do_fire_by_name(self, id):
+        event = EventType.selectBy(name=id)
+
+        do_in_transaction(lambda:self._insert_events(event, request.params))
+
+        g.log("Fired event %s" % event.name) 
+        return 'accepted'
+
 
     @jsonify
     def subscriptions(self, id):
