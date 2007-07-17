@@ -10,7 +10,7 @@ setup(
     author_email="novalis@openplans.org",
     url="http://www.openplans.org/projects/cabochon",
     license="GPLv2 or any later version",
-    install_requires=["Pylons>=0.9.5", "SQLObject", "restclient", "wsgiutils", "httplib2", "simplejson"],
+    install_requires=["Pylons>=0.9.5", "SQLObject", "restclient", "wsgiutils", "httplib2", "simplejson", "WSSEAuth"],
     packages=find_packages(),
     include_package_data=True,
     test_suite = 'nose.collector',

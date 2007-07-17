@@ -24,6 +24,7 @@ import paste
 import pylons
 import traceback
 import time
+from cabochon.lib.logger import Logger
 
 MAX_THREADS = 10
 
@@ -32,7 +33,8 @@ paste.deploy.CONFIG.push_process_config({'app_conf':app_conf})
 #engine = pylons.database.create_engine()
 
 subscription_running = set()
-    
+log = lambda message: None
+
 def process_event(subscriber):
     try:
         try:
@@ -41,12 +43,16 @@ def process_event(subscriber):
                 top_event = top_event[0]
             except IndexError:
                  #no more events for this subscriber
-                return
+                 time.sleep(0.000001)
+                 return
 
             response = top_event.handle()
             if not response: #yes, response is backwards on purpose
+                log ("Sent event to %s" % top_event.subscriber.url)
                 top_event.destroySelf()
             else:
+                log ("Failed sending event event to %s " % top_event.subscriber.url)
+                
                 top_event.last_response = "%s %s" % response
                 top_event.failures += 1
                 return False # failed to handle one
@@ -62,13 +68,15 @@ def process_event(subscriber):
 
 
 def loop_send_events():
+    global log
+    log = Logger("send_log")
     while 1:
         subscribers = Subscriber.select()
         for subscriber in subscribers:
             if subscriber.id in subscription_running:
                 continue
             while len(subscription_running) > MAX_THREADS:
-                time.sleep(0.001)
+                time.sleep(0.00001)
             subscription_running.add(subscriber.id)
             Thread(target=process_event, args=(subscriber,)).run()
 

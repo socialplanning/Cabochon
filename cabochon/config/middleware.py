@@ -4,6 +4,7 @@ from paste.urlparser import StaticURLParser
 from paste.registry import RegistryManager
 from paste.deploy.config import ConfigMiddleware, CONFIG
 from paste.deploy.converters import asbool
+from wsseauth import WSSEAuthMiddleware
 
 from pylons.error import error_template
 from pylons.middleware import ErrorHandler, ErrorDocuments, StaticJavascripts, error_mapper
@@ -40,7 +41,13 @@ def make_app(global_conf, full_stack=True, **app_conf):
     # YOUR MIDDLEWARE
     # Put your own middleware here, so that any problems are caught by the error
     # handling middleware underneath
-    
+
+    #optional security
+    username = app_conf.get('username', None)
+    password = app_conf.get('password', None)
+    if username:
+        app = WSSEAuthMiddleware(app, {username : password}, required=True)
+            
     # If errror handling and exception catching will be handled by middleware
     # for multiple apps, you will want to set full_stack = False in your config
     # file so that it can catch the problems.

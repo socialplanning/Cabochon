@@ -68,7 +68,7 @@ class EventController(BaseController):
         pass
 
     def do_fire_by_name(self, id):
-        event = EventType.selectBy(name=id)
+        event = EventType.selectBy(name=id)[0]
 
         do_in_transaction(lambda:self._insert_events(event, request.params))
 
