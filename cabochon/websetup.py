@@ -17,8 +17,9 @@
 # Boston, MA  02110-1301
 # USA
 
-import paste.deploy
+from paste.deploy import appconfig
 
+from cabochon.config.environment import load_environment
 from cabochon.models import *
 
 
@@ -26,9 +27,8 @@ def setup_config(command, filename, section, vars):
     """
     Place any commands to setup cabochon here.
     """
-    conf = paste.deploy.appconfig('config:' + filename)
-    conf.update(dict(app_conf=conf.local_conf, global_conf=conf.global_conf))
-    paste.deploy.CONFIG.push_process_config(conf)
+    conf = appconfig('config:' + filename)
+    load_environment(conf.global_conf, conf.local_conf)
 
     #you'll need these when you need to zap tables
     for table in soClasses[::-1]:

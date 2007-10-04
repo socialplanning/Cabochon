@@ -1,8 +1,9 @@
+from pylons import config
 from logger import Logger
 
 class Globals(object):
 
-    def __init__(self, global_conf, app_conf, **extra):
+    def __init__(self):
         """
         Globals acts as a container for objects available throughout
         the life of the application.
@@ -28,7 +29,7 @@ class Globals(object):
             
         """
 
-        log_file = app_conf.get('log_file')
+        log_file = config.get('log_file')
         if log_file:
             self.log = Logger(log_file)
         else:
