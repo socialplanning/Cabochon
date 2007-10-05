@@ -117,7 +117,7 @@ class EventController(BaseController):
         except:
             g.log("Failed to delete subscription %s (by event %s)" % (subscriber.id, request.params['event']))
             return {'status' : 'failed'}
-        return {'status' : 'succeeded'}
+        return {'status' : 'unsubscribed'}
 
 
     @dispatch_on(POST='do_subscribe')

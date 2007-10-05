@@ -47,7 +47,7 @@ class TestCabochonController(TestController):
         res = self.app.post(subscribe_url, params={'url' : 'http://localhost:10424/test', 'method' : 'POST'})
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
-        assert fromjson(res.body) == "accepted"
+        assert fromjson(res.body) == {'status' : "accepted"}
 
         send_all_pending_events()
 
@@ -64,7 +64,7 @@ class TestCabochonController(TestController):
         res = self.app.post(subscribe_url, params={'url' : 'http://localhost:10424/elsewhere', 'method' : 'POST', 'redirections': 0})
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
-        assert fromjson(res.body) == "accepted"
+        assert fromjson(res.body) == {'status' : "accepted"}
 
         send_all_pending_events()
 
@@ -80,19 +80,19 @@ class TestCabochonController(TestController):
 
         #subscribe and send a message
         res = self.app.post(subscribe_url, params={'url' : 'http://localhost:10424/morx/fleem', 'method' : 'POST'})
-        unsubscribe_url = fromjson(res.body)
+        unsubscribe_url = fromjson(res.body)['unsubscribe']
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
-        assert fromjson(res.body) == "accepted"
+        assert fromjson(res.body) == {'status' : "accepted"}
 
         send_all_pending_events()
 
         #now unsubscribe and send a message
         res = self.app.post(unsubscribe_url)
-        assert res.body == "true"
+        assert fromjson(res.body) == {'status' : 'unsubscribed'}
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
-        assert fromjson(res.body) == "accepted"
+        assert fromjson(res.body) == {'status' : "accepted"}        
         
         send_all_pending_events()
 
@@ -112,16 +112,16 @@ class TestCabochonController(TestController):
         res = self.app.post(subscribe_url, params={'url' : 'http://localhost:10424/morx/fleem', 'method' : 'POST'})
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
-        assert fromjson(res.body) == "accepted"
+        assert fromjson(res.body) == {'status' : "accepted"}
 
         send_all_pending_events()
 
         #now unsubscribe and send a message
         res = self.app.post(h.url_for(controller='event', action='unsubscribe_by_event'), params={'url' : 'http://localhost:10424/morx/fleem', 'event' : 'grib'})
-        assert res.body == "true"
+        assert fromjson(res.body) == {"status" : "unsubscribed"}
         
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
-        assert fromjson(res.body) == "accepted"
+        assert fromjson(res.body) == {'status' : "accepted"}
         
         send_all_pending_events()
 
