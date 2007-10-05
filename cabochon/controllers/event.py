@@ -26,13 +26,13 @@ class EventController(BaseController):
     @dispatch_on(POST='create_event')
     @jsonify
     def index(self):
-        return [{'id' : e.id, 'name' : e.name} for e in EventType.select()]
+        return {'event_types' : [{'id' : e.id, 'name' : e.name} for e in EventType.select()]}
 
 
     @jsonify
     def subscribers(self, id):
         event = EventType.get(id)
-        return [{'id' : h.id, 'url' : h.url, 'method' : h.method} for h in event.subscribers]
+        return {'subscribers' : [{'id' : h.id, 'url' : h.url, 'method' : h.method} for h in event.subscribers]}
 
     @jsonify
     def create_event(self):
@@ -60,7 +60,7 @@ class EventController(BaseController):
         do_in_transaction(lambda:self._insert_events(event, request.params))
 
         g.log("Fired event %s" % event.name) 
-        return 'accepted'
+        return {'status' : 'accepted'}
 
     @jsonify
     @dispatch_on(POST='do_fire_by_name')
@@ -73,7 +73,7 @@ class EventController(BaseController):
         do_in_transaction(lambda:self._insert_events(event, request.params))
 
         g.log("Fired event %s" % event.name) 
-        return 'accepted'
+        return {'status' : 'accepted'}
 
 
     @jsonify
@@ -82,10 +82,11 @@ class EventController(BaseController):
         subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
         try:
             subscriber = subscriber[0]
-            return {'unsubscribe' : h.url_for(action='unsubscribe', id=subscriber.id),
+            return {'status' : 'subscribed',
+                    'unsubscribe' : h.url_for(action='unsubscribe', id=subscriber.id),
                     'fire' : h.url_for(action='fire', id=event_type.id)}
         except:
-            return None
+            return {'status' : 'not subscribed'}
 
     @dispatch_on(POST='do_unsubscribe')
     def unsubscribe(self, id):
@@ -98,8 +99,8 @@ class EventController(BaseController):
             g.log("Deleted subscription %s" % id)
         except:
             g.log("Failed to delete subscription %s (probably no such thing)" % id)
-            return False
-        return True
+            return {'status' : 'failed'}
+        return {'status' : 'unsubscribed'}
         
     @dispatch_on(POST='do_unsubscribe_by_event')
     def unsubscribe_by_event(self, id):
@@ -115,8 +116,8 @@ class EventController(BaseController):
             subscriber.destroySelf()
         except:
             g.log("Failed to delete subscription %s (by event %s)" % (subscriber.id, request.params['event']))
-            return False
-        return True
+            return {'status' : 'failed'}
+        return {'status' : 'succeeded'}
 
 
     @dispatch_on(POST='do_subscribe')
@@ -135,4 +136,4 @@ class EventController(BaseController):
             subscriber = Subscriber(event_type=event_type, **dict(request.params))
             g.log("Updated subscription %s to %s at %s" % (subscriber.id, event_type.name, request.params['url']))
 
-        return h.url_for(action='unsubscribe', id=subscriber.id)
+        return {'unsubscribe' : h.url_for(action='unsubscribe', id=subscriber.id)}
