@@ -31,7 +31,7 @@ def setup_config(command, filename, section, vars):
     load_environment(conf.global_conf, conf.local_conf)
 
     #you'll need these when you need to zap tables
-    for table in soClasses[::-1]:
-        table.dropTable(ifExists=True)
+#    for table in soClasses[::-1]:
+#        table.dropTable(ifExists=True)
     for table in soClasses:
         table.createTable(ifNotExists=True)

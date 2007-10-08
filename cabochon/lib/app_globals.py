@@ -2,7 +2,6 @@ from pylons import config
 from logger import Logger
 
 class Globals(object):
-
     def __init__(self):
         """
         Globals acts as a container for objects available throughout
@@ -34,10 +33,11 @@ class Globals(object):
             self.log = Logger(log_file)
         else:
             self.log = lambda message: None
-        
+                
     def __del__(self):
         """
         Put any cleanup code to be run when the application finally exits 
         here.
         """
         pass
+

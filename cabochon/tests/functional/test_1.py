@@ -19,15 +19,22 @@
 
 from cabochon.tests import *
 from cabochon.tests.functional import CabochonTestServer
-from cabochon.lib.send_event import send_all_pending_events
 from cabochon.models import *
 import cabochon.lib.helpers as h
 from simplejson import loads as fromjson
 from paste.util.multidict import MultiDict
+import time
+
+from paste.deploy import loadapp
+import paste.fixture
 
 test_server = CabochonTestServer()
 test_server.start()
 
+def send_all_pending_events(res):
+    while not res.g.event_sender.event_queue_empty():
+        time.sleep(0.2)
+        
 class TestCabochonController(TestController):
     def setUp(self):
         test_server.server_fixture.clear()
@@ -37,9 +44,11 @@ class TestCabochonController(TestController):
             s.destroySelf()
         for p in PendingEvent.select():
             p.destroySelf()            
+
+        wsgiapp = loadapp('config:test.ini', relative_to=self.conf_dir)
+        self.app = paste.fixture.TestApp(wsgiapp)
         
     def test_cabochon(self):
-        
         res = self.app.post(h.url_for(controller='event'), params={'name' : 'test_event'})
         urls = fromjson(res.body)
         fire_url = urls['fire']
@@ -49,7 +58,7 @@ class TestCabochonController(TestController):
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
         assert fromjson(res.body) == {'status' : "accepted"}
 
-        send_all_pending_events()
+        send_all_pending_events(res)
 
         server_fixture = test_server.server_fixture
 
@@ -66,7 +75,7 @@ class TestCabochonController(TestController):
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
         assert fromjson(res.body) == {'status' : "accepted"}
 
-        send_all_pending_events()
+        send_all_pending_events(res)
 
         server_fixture = test_server.server_fixture
         assert server_fixture.requests_received == [{'path': '/elsewhere', 'params': MultiDict([('fleem', '2'), ('morx', '[1]')]), 'method': 'POST'}]
@@ -85,7 +94,7 @@ class TestCabochonController(TestController):
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
         assert fromjson(res.body) == {'status' : "accepted"}
 
-        send_all_pending_events()
+        send_all_pending_events(res)
 
         #now unsubscribe and send a message
         res = self.app.post(unsubscribe_url)
@@ -94,7 +103,7 @@ class TestCabochonController(TestController):
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
         assert fromjson(res.body) == {'status' : "accepted"}        
         
-        send_all_pending_events()
+        send_all_pending_events(res)
 
         #we only get the first message
         server_fixture = test_server.server_fixture
@@ -114,7 +123,7 @@ class TestCabochonController(TestController):
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
         assert fromjson(res.body) == {'status' : "accepted"}
 
-        send_all_pending_events()
+        send_all_pending_events(res)
 
         #now unsubscribe and send a message
         res = self.app.post(h.url_for(controller='event', action='unsubscribe_by_event'), params={'url' : 'http://localhost:10424/morx/fleem', 'event' : 'grib'})
@@ -123,7 +132,7 @@ class TestCabochonController(TestController):
         res = self.app.post(fire_url, params={'morx' : [1], 'fleem' : 2})
         assert fromjson(res.body) == {'status' : "accepted"}
         
-        send_all_pending_events()
+        send_all_pending_events(res)
 
         #we only get the first message
         server_fixture = test_server.server_fixture

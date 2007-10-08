@@ -2,7 +2,7 @@ from pylons import Response, c, g, cache, request, session
 from pylons.controllers import WSGIController
 from pylons.decorators import jsonify, validate
 from pylons.templating import render, render_response
-from pylons.helpers import abort, redirect_to, etag_cache
+from pylons.controllers.util import abort, redirect_to, etag_cache
 from pylons.i18n import N_, _, ungettext
 import cabochon.models as model
 import cabochon.lib.helpers as h

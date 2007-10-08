@@ -20,6 +20,7 @@
 from sqlobject import *
 from pylons.database import PackageHub
 from pickle import dumps, loads
+import simplejson
 from paste.util.multidict import MultiDict
 import urllib
 import httplib2
@@ -49,6 +50,8 @@ class Subscriber(SQLObject):
     redirections = IntCol(default=5)
     follow_all_redirects = BoolCol(default=False)
     version = StringCol(default=u'')
+
+    pending_events = MultipleJoin('PendingEvent', orderBy='id')
     
     def _set_redirections(self, value):
         return self._SO_set_redirections(int(value))
@@ -82,6 +85,10 @@ class Subscriber(SQLObject):
             return []
 
 class PendingEvent(SQLObject):
+    class sqlmeta:
+       createSQL = {'mysql' :
+                    ['alter table pendingevent engine InnoDB;']
+                    }
     event_type = ForeignKey('EventType', cascade=True)
     subscriber = ForeignKey('Subscriber')
     data = StringCol()
@@ -95,6 +102,9 @@ class PendingEvent(SQLObject):
         return loads(self._SO_get_data())
 
     def handle(self):
+        """NOTE: The result of this function is *backwards*.  It
+        returns None for success.  Just like C.
+        """
         sub = self.subscriber
         params = sub.params
         if not params:
@@ -126,10 +136,19 @@ class PendingEvent(SQLObject):
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
         response = h.request(sub.url, method=sub.method, body=body, headers=headers, redirections=sub.redirections)
-
-        if response[1] != '"accepted"':
+        try:
+            if response[0]['status'] == '303':
+                 #too many redirections. Treat the request as handled,
+                 #because the subscriber was the one who wanted that
+                 #limit in the first place
+                return None
+            if simplejson.loads(response[1]).get('status') != 'accepted':
+                return response
+        except ValueError:
             return response
-
+        except AttributeError:
+            return response        
+        
 soClasses=[EventType,Subscriber, PendingEvent]
 
 

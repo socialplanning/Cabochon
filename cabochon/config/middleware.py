@@ -38,6 +38,9 @@ def make_app(global_conf, full_stack=True, **app_conf):
         
     # Load our default Pylons WSGI app and make g available
     app = pylons.wsgiapp.PylonsApp()
+
+    from cabochon.lib.event_queue import init_sender_threads
+    app.globals.event_sender = init_sender_threads()
     
     # YOUR MIDDLEWARE
     # Put your own middleware here, so that any problems are caught by the error

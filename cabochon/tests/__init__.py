@@ -27,8 +27,7 @@ cmd.run([test_file])
 
 class TestController(TestCase):
     def __init__(self, *args):
-        wsgiapp = loadapp('config:test.ini', relative_to=conf_dir)
-        self.app = paste.fixture.TestApp(wsgiapp)
+        self.conf_dir = conf_dir
         TestCase.__init__(self, *args)
 
 __all__ = ['url_for', 'TestController']

@@ -51,8 +51,10 @@ class EventController(BaseController):
         pass
 
     def _insert_events(self, event, data):
+        sender = g.event_sender
         for s in event.subscribers:
-            PendingEvent(event_type = event, subscriber = s, data=data)
+            e = PendingEvent(event_type = event, subscriber = s, data=data)
+            sender.add_pending_event(s, e)
             
     def do_fire(self, id):
         event = EventType.get(id)
@@ -134,6 +136,7 @@ class EventController(BaseController):
             g.log("New subscription %s to %s at %s" % (subscriber.id, event_type.name, request.params['url']))
         except IndexError:
             subscriber = Subscriber(event_type=event_type, **dict(request.params))
+            g.event_sender.add_subscriber(subscriber)
             g.log("Updated subscription %s to %s at %s" % (subscriber.id, event_type.name, request.params['url']))
 
         return {'unsubscribe' : h.url_for(action='unsubscribe', id=subscriber.id)}
