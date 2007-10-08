@@ -24,6 +24,8 @@ import simplejson
 from paste.util.multidict import MultiDict
 import urllib
 import httplib2
+from wsseauth import wsse_header
+from pylons import config
 
 hub = PackageHub("cabochon", pool_connections=False)
 __connection__ = hub
@@ -134,6 +136,12 @@ class PendingEvent(SQLObject):
             
         if not headers.has_key('Content-Type'):
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
+
+            username = config.get('username', None)
+            password = config.get('password', None)
+            if username:
+                headers['AUTHORIZATION'] = 'WSSE profile="UsernameToken"'
+                headers['X_WSSE'] = wsse_header(username, password)
 
         response = h.request(sub.url, method=sub.method, body=body, headers=headers, redirections=sub.redirections)
         try:
