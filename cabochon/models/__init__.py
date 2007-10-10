@@ -108,7 +108,7 @@ class PendingEvent(SQLObject):
         returns None for success.  Just like C.
         """
         sub = self.subscriber
-        params = sub.params
+        params = dict(sub.params)
         if not params:
             params = {}
         params.update(self.data)
@@ -119,7 +119,9 @@ class PendingEvent(SQLObject):
         
         if sub.username:
             h.add_credentials(sub.username, sub.password)
-       
+
+        params = dict((key, simplejson.dumps(value)) for key, value in params.items())
+
         if sub.method == "GET":
             #merge params with query string
             qs = sub.queryString

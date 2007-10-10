@@ -7,11 +7,17 @@ from pylons.i18n import N_, _, ungettext
 import cabochon.models as model
 import cabochon.lib.helpers as h
 
+from simplejson import loads, dumps
+
 class BaseController(WSGIController):
     def __call__(self, environ, start_response):
         # Insert any code to be run per request here. The Routes match
         # is under environ['pylons.routes_dict'] should you want to check
         # the action or route vars here
+
+        self.params = {}
+        for param, value in request.params.items():
+            self.params[param] = loads(value)        
         return WSGIController.__call__(self, environ, start_response)
 
 # Include the '_' function in the public names

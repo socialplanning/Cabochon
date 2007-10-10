@@ -36,7 +36,7 @@ class EventController(BaseController):
 
     @jsonify
     def create_event(self):
-        name = request.params['name']
+        name = self.params['name']
         try:
             event = EventType(name=name)
             g.log("Created event %s" % name) 
@@ -58,8 +58,7 @@ class EventController(BaseController):
             
     def do_fire(self, id):
         event = EventType.get(id)
-
-        do_in_transaction(lambda:self._insert_events(event, request.params))
+        do_in_transaction(lambda:self._insert_events(event, self.params))
 
         g.log("Fired event %s" % event.name) 
         return {'status' : 'accepted'}
@@ -72,7 +71,7 @@ class EventController(BaseController):
     def do_fire_by_name(self, id):
         event = EventType.selectBy(name=id)[0]
 
-        do_in_transaction(lambda:self._insert_events(event, request.params))
+        do_in_transaction(lambda:self._insert_events(event, self.params))
 
         g.log("Fired event %s" % event.name) 
         return {'status' : 'accepted'}
@@ -81,7 +80,7 @@ class EventController(BaseController):
     @jsonify
     def subscriptions(self, id):
         event_type = EventType.get(id)
-        subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
+        subscriber = Subscriber.selectBy(event_type=event_type, url=self.params['url'])
         try:
             subscriber = subscriber[0]
             return {'status' : 'subscribed',
@@ -110,14 +109,14 @@ class EventController(BaseController):
 
     @jsonify
     def do_unsubscribe_by_event(self, id):
-        event_type = EventType.selectBy(name=request.params['event'])[0]
-        subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
+        event_type = EventType.selectBy(name=self.params['event'])[0]
+        subscriber = Subscriber.selectBy(event_type=event_type, url=self.params['url'])
         try:
             subscriber = subscriber[0]
-            g.log("Deleted subscription %s (by event %s)" % (subscriber.id, request.params['event']))
+            g.log("Deleted subscription %s (by event %s)" % (subscriber.id, self.params['event']))
             subscriber.destroySelf()
         except:
-            g.log("Failed to delete subscription %s (by event %s)" % (subscriber.id, request.params['event']))
+            g.log("Failed to delete subscription %s (by event %s)" % (subscriber.id, self.params['event']))
             return {'status' : 'failed'}
         return {'status' : 'unsubscribed'}
 
@@ -129,14 +128,14 @@ class EventController(BaseController):
     @jsonify
     def do_subscribe(self, id):
         event_type = EventType.get(id)
-        subscriber = Subscriber.selectBy(event_type=event_type, url=request.params['url'])
+        subscriber = Subscriber.selectBy(event_type=event_type, url=self.params['url'])
         try:
             subscriber = subscriber[0]
-            subscriber.set(**dict(request.params))
-            g.log("New subscription %s to %s at %s" % (subscriber.id, event_type.name, request.params['url']))
+            subscriber.set(**dict(self.params))
+            g.log("New subscription %s to %s at %s" % (subscriber.id, event_type.name, self.params['url']))
         except IndexError:
-            subscriber = Subscriber(event_type=event_type, **dict(request.params))
+            subscriber = Subscriber(event_type=event_type, **dict(self.params))
             g.event_sender.add_subscriber(subscriber)
-            g.log("Updated subscription %s to %s at %s" % (subscriber.id, event_type.name, request.params['url']))
+            g.log("Updated subscription %s to %s at %s" % (subscriber.id, event_type.name, self.params['url']))
 
         return {'unsubscribe' : h.url_for(action='unsubscribe', id=subscriber.id)}
