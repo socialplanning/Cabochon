@@ -69,7 +69,11 @@ class EventController(BaseController):
         pass
 
     def do_fire_by_name(self, id):
-        event = EventType.selectBy(name=id)[0]
+        try:
+            event = EventType.selectBy(name=id)[0]
+        except IndexError:
+            #there must be no listeners -- that's OK.
+            return {'status' : 'accepted'}            
 
         do_in_transaction(lambda:self._insert_events(event, self.params))
 
