@@ -23,7 +23,7 @@ class BaseController(WSGIController):
         except ValueError:
             g.log("Bogus event %r" % request.params)
             #rejecting it won't help -- they'll just send it again
-            return WSGIResponse(code=200, content="{'status' : 'accepted'}") 
+            return WSGIResponse(code=200, content='{"status" : "accepted"}') 
         return WSGIController.__call__(self, environ, start_response)
 
 # Include the '_' function in the public names

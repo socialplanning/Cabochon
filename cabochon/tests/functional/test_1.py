@@ -21,7 +21,7 @@ from cabochon.tests import *
 from cabochon.tests.functional import CabochonTestServer
 from cabochon.models import *
 import cabochon.lib.helpers as h
-from simplejson import loads as fromjson
+from simplejson import loads as fromjson, dumps
 from paste.util.multidict import MultiDict
 import time
 
@@ -34,6 +34,12 @@ test_server.start()
 def send_all_pending_events(res):
     while not res.g.event_sender.event_queue_empty():
         time.sleep(0.2)
+
+def jsonpost(old_post):
+    def jsonpost_func(url, params={}):
+        params = dict((key, dumps(value)) for key, value in params.items())            
+        return old_post(url, params)
+    return jsonpost_func
         
 class TestCabochonController(TestController):
     def setUp(self):
@@ -47,6 +53,8 @@ class TestCabochonController(TestController):
 
         wsgiapp = loadapp('config:test.ini', relative_to=self.conf_dir)
         self.app = paste.fixture.TestApp(wsgiapp)
+        old_post = self.app.post
+        self.app.post = jsonpost(old_post)
         
     def test_cabochon(self):
         res = self.app.post(h.url_for(controller='event'), params={'name' : 'test_event'})
@@ -61,7 +69,6 @@ class TestCabochonController(TestController):
         send_all_pending_events(res)
 
         server_fixture = test_server.server_fixture
-
         assert server_fixture.requests_received == [{'path': '/test', 'params': MultiDict([('fleem', '2'), ('morx', '[1]')]), 'method': 'POST'}]
 
 
