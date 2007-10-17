@@ -8,7 +8,10 @@ from cabochon.lib.logger import Logger
 MAX_THREADS = 10
     
 class EventSenderThread(Thread):
-
+    """This attempts to send a messages to subscribers.  It itself
+    runs in a thread, and it spawns threads for each message it tries
+    to send as well.  At most one message will be in the process of
+    being sent to any given subscriber at any given time."""
     def __init__(self):
         self._lock = Lock()
         self.subscribers = dict((x.id, x.pending_events) for x in Subscriber.select())
@@ -16,6 +19,7 @@ class EventSenderThread(Thread):
         self.setDaemon(True)
         
     def process_event(self, subscriber):
+        """Actually send the first message to this subscriber."""
         try:
             try:
                 try:
@@ -55,11 +59,14 @@ class EventSenderThread(Thread):
         self._lock.release()
 
     def add_pending_event(self, subscriber, event):
+        """Add a message that is being sent to a subscriber."""
         self._lock.acquire()        
         self.subscribers[subscriber.id].append(event)
         self._lock.release()
 
     def event_queue_empty(self):
+        """Returns whether or not the event queue is empty -- that is,
+        no subscribers have events pending.  This is used mainly for tests."""
         self._lock.acquire()                
         result = not bool(sum(map(len, self.subscribers.values())))
         self._lock.release()
@@ -86,6 +93,7 @@ class EventSenderThread(Thread):
         self.running = False
         
 def init_sender_threads():
+    """Starts up an EventSenderThread to send events asynchronously"""
     #kill old threads.
     for thread in enumerate():
         if isinstance(thread, EventSenderThread):
