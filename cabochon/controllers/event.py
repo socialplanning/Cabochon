@@ -26,16 +26,19 @@ class EventController(BaseController):
     @dispatch_on(POST='create_event')
     @jsonify
     def index(self):
+        """Return a list of registered event types"""
         return {'event_types' : [{'id' : e.id, 'name' : e.name} for e in EventType.select()]}
 
 
     @jsonify
     def subscribers(self, id):
+        """Return a list of subscribers for a given event type"""
         event = EventType.get(id)
         return {'subscribers' : [{'id' : h.id, 'url' : h.url, 'method' : h.method} for h in event.subscribers]}
 
     @jsonify
     def create_event(self):
+        """Create an event type"""        
         name = self.params['name']
         try:
             event = EventType(name=name)
@@ -48,6 +51,7 @@ class EventController(BaseController):
     @jsonify
     @dispatch_on(POST='do_fire')
     def fire(self, id):
+        """see do_fire"""
         pass
 
     def _insert_events(self, event, data):
@@ -57,6 +61,7 @@ class EventController(BaseController):
             sender.add_pending_event(s, e)
             
     def do_fire(self, id):
+        """Fire an event by id"""        
         event = EventType.get(id)
         do_in_transaction(lambda:self._insert_events(event, self.params))
 
@@ -66,9 +71,11 @@ class EventController(BaseController):
     @jsonify
     @dispatch_on(POST='do_fire_by_name')
     def fire_by_name(self, id):
+        "See do_fire_by_name"
         pass
 
     def do_fire_by_name(self, id):
+        """Fire an event by name"""
         try:
             event = EventType.selectBy(name=id)[0]
         except IndexError:
@@ -83,6 +90,7 @@ class EventController(BaseController):
 
     @jsonify
     def subscriptions(self, id):
+        """Determine whether a given URL is subscribed to a given event type"""        
         event_type = EventType.get(id)
         subscriber = Subscriber.selectBy(event_type=event_type, url=self.params['url'])
         try:
@@ -95,10 +103,12 @@ class EventController(BaseController):
 
     @dispatch_on(POST='do_unsubscribe')
     def unsubscribe(self, id):
+        """See do_unsubscribe"""
         pass
 
     @jsonify
     def do_unsubscribe(self, id):
+        """Unsubscribe a given subscriber by id"""
         try:
             Subscriber.get(id).destroySelf()
             g.log("Deleted subscription %s" % id)
@@ -109,10 +119,12 @@ class EventController(BaseController):
         
     @dispatch_on(POST='do_unsubscribe_by_event')
     def unsubscribe_by_event(self, id):
+        """see do_unsubsribe_by_event"""        
         pass
 
     @jsonify
     def do_unsubscribe_by_event(self, id):
+        """Unsubscribe a given subscriber by event name and URL"""        
         event_type = EventType.selectBy(name=self.params['event'])[0]
         subscriber = Subscriber.selectBy(event_type=event_type, url=self.params['url'])
         try:
@@ -127,10 +139,12 @@ class EventController(BaseController):
 
     @dispatch_on(POST='do_subscribe')
     def subscribe(self, id):
+        """see do_subsribe"""        
         pass
 
     @jsonify
     def do_subscribe(self, id):
+        """Subscribe a given URL to the event with the given id."""
         event_type = EventType.get(id)
         subscriber = Subscriber.selectBy(event_type=event_type, url=self.params['url'])
         try:
