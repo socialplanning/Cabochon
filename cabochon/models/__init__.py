@@ -89,7 +89,7 @@ class Subscriber(SQLObject):
 class PendingEvent(SQLObject):
     class sqlmeta:
        createSQL = {'mysql' :
-                    ['alter table pendingevent engine InnoDB;']
+                    ['alter table pending_event engine InnoDB;']
                     }
     event_type = ForeignKey('EventType', cascade=True)
     subscriber = ForeignKey('Subscriber')
