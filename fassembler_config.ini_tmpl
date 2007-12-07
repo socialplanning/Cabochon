@@ -4,7 +4,7 @@
 # The %(here)s variable will be replaced with the parent directory of this file
 #
 [DEFAULT]
-debug = true
+debug = false
 email_to = 
 smtp_server = localhost
 error_email_from = paste@{{env.fq_hostname}}
@@ -30,7 +30,7 @@ database = {{config.db_sqlobject}}
 #comment this line out for performance and security.
 log_file = %(here)s/cabochon.log
 
-password_file = %(here)s/passwd
+password_file = {{env.base_path}}/var/cabochon-password.txt
 
 # If you'd like to fine-tune the individual locations of the cache data dirs
 # for Myghty, the Cache data, or the Session saves, un-comment the desired
@@ -48,4 +48,4 @@ password_file = %(here)s/passwd
 # WARNING: *THE LINE BELOW MUST BE UNCOMMENTED ON A PRODUCTION ENVIRONMENT*
 # Debug mode will enable the interactive debugging tool, allowing ANYONE to
 # execute malicious code after an exception is raised.
-#set debug = false
+set debug = false
