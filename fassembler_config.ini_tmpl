@@ -1,0 +1,51 @@
+#
+# Cabochon - Pylons development environment configuration
+#
+# The %(here)s variable will be replaced with the parent directory of this file
+#
+[DEFAULT]
+debug = true
+email_to = 
+smtp_server = localhost
+error_email_from = paste@{{env.fq_hostname}}
+
+[server:main]
+use = egg:Paste#http
+host = {{config.host}}
+port = {{config.port}}
+
+[app:main]
+use = egg:Cabochon
+## FIXME: I'd prefer some kind of scratch directory
+cache_dir = %(here)s/data
+session.key = cabochon
+## FIXME: this should be auto-generated
+session.secret = somesecret
+
+#sqlobject.dburi = mysql://pebble:pebble@localhost/pebble
+#database = mysql://pebble:pebble@localhost/pebble
+sqlobject.dburi = {{config.db_sqlobject}}
+database = {{config.db_sqlobject}}
+
+#comment this line out for performance and security.
+log_file = %(here)s/cabochon.log
+
+password_file = %(here)s/passwd
+
+# If you'd like to fine-tune the individual locations of the cache data dirs
+# for Myghty, the Cache data, or the Session saves, un-comment the desired
+# settings here:
+#myghty_data_dir = %(here)s/data/templates
+#cache_data_dir = %(here)s/data/cache
+#session_data_dir = %(here)s/data/sessions
+
+# Specify the database for SQLAlchemy to use via
+# pylons.database.session_context.
+# %(here) may include a ':' character on Windows environments; this can
+# invalidate the URI when specifying a SQLite db via path name
+#sqlalchemy.dburi = sqlite:///%(here)s/somedb.db
+
+# WARNING: *THE LINE BELOW MUST BE UNCOMMENTED ON A PRODUCTION ENVIRONMENT*
+# Debug mode will enable the interactive debugging tool, allowing ANYONE to
+# execute malicious code after an exception is raised.
+#set debug = false
