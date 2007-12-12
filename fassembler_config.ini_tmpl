@@ -22,15 +22,13 @@ session.key = cabochon
 ## FIXME: this should be auto-generated
 session.secret = somesecret
 
-#sqlobject.dburi = mysql://pebble:pebble@localhost/pebble
-#database = mysql://pebble:pebble@localhost/pebble
 sqlobject.dburi = {{config.db_sqlobject}}
 database = {{config.db_sqlobject}}
 
 #comment this line out for performance and security.
-log_file = %(here)s/cabochon.log
+log_file = {{env.var}}/logs/cabochon/cabochon.log
 
-password_file = {{env.base_path}}/var/cabochon-password.txt
+password_file = {{env.var}}/cabochon-password.txt
 
 # If you'd like to fine-tune the individual locations of the cache data dirs
 # for Myghty, the Cache data, or the Session saves, un-comment the desired
@@ -38,12 +36,6 @@ password_file = {{env.base_path}}/var/cabochon-password.txt
 #myghty_data_dir = %(here)s/data/templates
 #cache_data_dir = %(here)s/data/cache
 #session_data_dir = %(here)s/data/sessions
-
-# Specify the database for SQLAlchemy to use via
-# pylons.database.session_context.
-# %(here) may include a ':' character on Windows environments; this can
-# invalidate the URI when specifying a SQLite db via path name
-#sqlalchemy.dburi = sqlite:///%(here)s/somedb.db
 
 # WARNING: *THE LINE BELOW MUST BE UNCOMMENTED ON A PRODUCTION ENVIRONMENT*
 # Debug mode will enable the interactive debugging tool, allowing ANYONE to
