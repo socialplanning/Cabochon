@@ -28,7 +28,7 @@ database = {{config.db_sqlobject}}
 #comment this line out for performance and security.
 log_file = {{env.var}}/logs/cabochon/cabochon.log
 
-password_file = {{env.var}}/cabochon-password.txt
+password_file = {{config.cabochon_user_info}}
 
 # If you'd like to fine-tune the individual locations of the cache data dirs
 # for Myghty, the Cache data, or the Session saves, un-comment the desired
