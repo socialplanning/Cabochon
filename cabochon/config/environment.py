@@ -52,8 +52,9 @@ def load_environment(global_conf={}, app_conf={}):
 
 
     # initialize list of subscribers
-    sub_conf = ConfigParser()
-    sub_conf.read(config['subscriber_list_filename'])
-    for event, subscriber in sub_conf.items('subscribers'):
-        event, subscriber
-        subscribe_by_name (subscriber, event)
+    subscriber_list_filename = config.get('subscriber_list_filename')
+    if subscriber_list_filename is not None:
+        sub_conf = ConfigParser()
+        sub_conf.read(subscriber_list_filename)
+        for event, subscriber in sub_conf.items('subscribers'):
+            subscribe_by_name(subscriber, event)
