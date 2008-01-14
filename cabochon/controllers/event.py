@@ -118,12 +118,12 @@ class EventController(BaseController):
         return {'status' : 'unsubscribed'}
         
     @dispatch_on(POST='do_unsubscribe_by_event')
-    def unsubscribe_by_event(self, id):
-        """see do_unsubsribe_by_event"""        
+    def unsubscribe_by_event(self):
+        """see do_unsubsribe_by_event"""
         pass
 
     @jsonify
-    def do_unsubscribe_by_event(self, id):
+    def do_unsubscribe_by_event(self):
         """Unsubscribe a given subscriber by event name and URL"""        
         event_type = EventType.selectBy(name=self.params['event'])[0]
         subscriber = Subscriber.selectBy(event_type=event_type, url=self.params['url'])

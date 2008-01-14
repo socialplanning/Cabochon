@@ -18,6 +18,7 @@ def make_map():
 
     # CUSTOM ROUTES HERE
 
+    map.connect('/unsubscribe_by_event', controller='event', action='unsubscribe_by_event')
     map.connect(':controller/:action/:id')
     map.connect('*url', controller='template', action='view')
 
