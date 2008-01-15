@@ -21,7 +21,7 @@ def subscribe_by_name(event, url):
         subscriber = subscriber[0]
         subscriber.set(url=url)
     except IndexError:
-        subscriber = Subscriber(event_type=event_type, method="POST")
+        subscriber = Subscriber(event_type=event_type, url=url, method="POST")
 
 
 def load_environment(global_conf={}, app_conf={}):
@@ -56,8 +56,7 @@ def load_environment(global_conf={}, app_conf={}):
             f = open(subscriber_list_filename)
             for line in f:
                 line = line.strip()
-                print "l = ", line
                 event, subscriber = line.split()[:2]
-            subscribe_by_name(subscriber, event)
+                subscribe_by_name(event, subscriber)
         except IOError:
             pass
