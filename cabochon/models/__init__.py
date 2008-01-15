@@ -59,6 +59,10 @@ class Subscriber(SQLObject):
     version = StringCol(default=u'')
 
     pending_events = MultipleJoin('PendingEvent', orderBy='id')
+
+    def _set_url(self, value):
+        assert value.startswith('http'), 'bad subscriber url "%s"' % value
+        self._SO_set_url(value)
     
     def _set_redirections(self, value):
         return self._SO_set_redirections(int(value))

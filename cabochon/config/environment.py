@@ -52,8 +52,12 @@ def load_environment(global_conf={}, app_conf={}):
     # initialize list of subscribers
     subscriber_list_filename = config.get('subscriber_list_filename')
     if subscriber_list_filename is not None:
-        f = open(subscriber_list_filename)
-        for line in f:
-            line = line.strip()
-            event, subscriber = line.split()[:2]
+        try:
+            f = open(subscriber_list_filename)
+            for line in f:
+                line = line.strip()
+                print "l = ", line
+                event, subscriber = line.split()[:2]
             subscribe_by_name(subscriber, event)
+        except IOError:
+            pass
