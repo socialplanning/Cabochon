@@ -3,6 +3,7 @@ from threading import Thread, enumerate, Lock
 
 import traceback
 import time
+import sys
 from cabochon.lib.logger import Logger
 
 MAX_THREADS = 10
@@ -47,6 +48,8 @@ class EventSenderThread(Thread):
             except KeyboardInterrupt:
                 interrupt_main()
             except Exception, e:
+                print >> sys.stderr, '-'*60
+                print >> sys.stderr, 'Exception processing event at %s' % time.strftime('%c')
                 traceback.print_exc()
         finally:
             if subscriber in self.subscription_running:

@@ -17,6 +17,8 @@
 # Boston, MA  02110-1301
 # USA
 
+import socket
+import sys
 from sqlobject import *
 from pylons.database import PackageHub
 from pickle import dumps, loads
@@ -24,8 +26,11 @@ import simplejson
 from paste.util.multidict import MultiDict
 import urllib
 import httplib2
+import logging
 from wsseauth import wsse_header
 from pylons import config
+
+log = logging.getLogger('cabochon')
 
 hub = PackageHub("cabochon", pool_connections=False)
 __connection__ = hub
@@ -145,7 +150,15 @@ class PendingEvent(SQLObject):
                 headers['AUTHORIZATION'] = 'WSSE profile="UsernameToken"'
                 headers['X_WSSE'] = wsse_header(username, password)
 
-        response = h.request(sub.url, method=sub.method, body=body, headers=headers, redirections=sub.redirections)
+        __traceback_info__ = '%s %s (%i bytes in body)' % (sub.method, sub.url, len(body))
+        log.info('Sending event %s %s (%i bytes in body, id=%s' % (sub.url, sub.method, len(body), self.id))
+
+        try:
+            response = h.request(sub.url, method=sub.method, body=body, headers=headers, redirections=sub.redirections)
+        except socket.error, e:
+            print >> sys.stderr, 'Error doing %s %s (body length: %i bytes)' % (sub.url, sub.method, len(body))
+            raise
+
         try:
             if response[0]['status'] == '303':
                  #too many redirections. Treat the request as handled,
