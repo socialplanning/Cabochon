@@ -5,8 +5,6 @@ import cabochon.lib.app_globals as app_globals
 
 from cabochon.config.routing import make_map
 
-from ConfigParser import ConfigParser
-
 class ConfigError(Exception): pass
 
 from cabochon.models import *
@@ -54,7 +52,8 @@ def load_environment(global_conf={}, app_conf={}):
     # initialize list of subscribers
     subscriber_list_filename = config.get('subscriber_list_filename')
     if subscriber_list_filename is not None:
-        sub_conf = ConfigParser()
-        if sub_conf.read(subscriber_list_filename):
-            for event, subscriber in sub_conf.items('subscribers'):
-                subscribe_by_name(subscriber, event)
+        f = open(subscriber_list_filename)
+        for line in f:
+            line = line.strip()
+            event, subscriber = line.split()[:2]
+            subscribe_by_name(subscriber, event)
