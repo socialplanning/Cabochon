@@ -87,10 +87,10 @@ class EventSenderThread(Thread):
                 if not len(queue):
                     continue
                 while len(self.subscription_running) > MAX_THREADS:
-                    time.sleep(0.00001)
+                    time.sleep(0.01)
                 self.subscription_running.add(subscriber)
                 Thread(target=self.process_event, args=(subscriber,)).run()
-            time.sleep(0.00001)
+            time.sleep(0.01)
         
     def stop(self):
         self.running = False
