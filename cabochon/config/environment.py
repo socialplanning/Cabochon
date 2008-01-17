@@ -57,6 +57,7 @@ def load_environment(global_conf={}, app_conf={}):
             for line in f:
                 line = line.strip()
                 event, subscriber = line.split()[:2]
+                assert subscriber.startswith("http"), "Subscriber url must start with http: '%s'" % subscriber
                 subscribe_by_name(event, subscriber)
         except IOError:
             pass
