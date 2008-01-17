@@ -29,6 +29,7 @@ import httplib2
 import logging
 from wsseauth import wsse_header
 from pylons import config
+import re
 
 log = logging.getLogger('cabochon')
 
@@ -112,6 +113,16 @@ class PendingEvent(SQLObject):
     def _get_data(self):
         return loads(self._SO_get_data())
 
+    url_template_re = re.compile("\{(.*?)\}")
+
+    @property
+    def url(self):
+        """URL templating"""
+        data = self.data
+        original_url = self.subscriber.url
+
+        return self.url_template_re.sub(lambda m: data.get(m.group(1)), original_url)
+
     def handle(self):
         """NOTE: The result of this function is *backwards*.  It
         returns None for success.  Just like C.
@@ -154,13 +165,13 @@ class PendingEvent(SQLObject):
                 headers['AUTHORIZATION'] = 'WSSE profile="UsernameToken"'
                 headers['X_WSSE'] = wsse_header(username, password)
 
-        __traceback_info__ = '%s %s (%i bytes in body)' % (sub.method, sub.url, len(body))
-        log.info('Sending event %s %s (%i bytes in body, id=%s' % (sub.url, sub.method, len(body), self.id))
+        __traceback_info__ = '%s %s (%i bytes in body)' % (sub.method, self.url, len(body))
+        log.info('Sending event %s %s (%i bytes in body, id=%s' % (self.url, sub.method, len(body), self.id))
 
         try:
-            response = h.request(sub.url, method=sub.method, body=body, headers=headers, redirections=sub.redirections)
+            response = h.request(self.url, method=sub.method, body=body, headers=headers, redirections=sub.redirections)
         except socket.error, e:
-            print >> sys.stderr, 'Error doing %s %s (body length: %i bytes)' % (sub.url, sub.method, len(body))
+            print >> sys.stderr, 'Error doing %s %s (body length: %i bytes)' % (self.url, sub.method, len(body))
             raise
 
         try:

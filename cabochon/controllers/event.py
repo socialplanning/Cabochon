@@ -21,6 +21,7 @@ from cabochon.lib.base import *
 from cabochon.models import *
 from pylons.decorators.rest import dispatch_on
 from sqlobject.dberrors import DuplicateEntryError
+import logging
 
 class EventController(BaseController):
     @dispatch_on(POST='create_event')
@@ -55,8 +56,11 @@ class EventController(BaseController):
         pass
 
     def _insert_events(self, event, data):
+        log = logging.getLogger('cabochon')
+        log.info ("Got event %s" % event.name)
         sender = g.event_sender
         for s in event.subscribers:
+            log.info ("Enqueueing event %s for %s" % (event.name, s.url))
             e = PendingEvent(event_type = event, subscriber = s, data=data)
             sender.add_pending_event(s, e)
             
@@ -80,8 +84,8 @@ class EventController(BaseController):
             event = EventType.selectBy(name=id)[0]
         except IndexError:
             #there must be no listeners -- that's OK.
-            return {'status' : 'accepted'}            
-
+            return {'status' : 'accepted'}
+        
         do_in_transaction(lambda:self._insert_events(event, self.params))
 
         g.log("Fired event %s" % event.name) 
