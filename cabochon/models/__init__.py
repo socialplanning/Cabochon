@@ -173,12 +173,16 @@ class PendingEvent(SQLObject):
         except socket.error, e:
             print >> sys.stderr, 'Error doing %s %s (body length: %i bytes)' % (self.url, sub.method, len(body))
             raise
-
+        except httplib2.RedirectLimit:
+            #too many redirections. Treat the request as handled,
+            #because the subscriber was the one who wanted that
+            #limit in the first place
+            return None            
+            
         try:
             if response[0]['status'] == '303':
-                 #too many redirections. Treat the request as handled,
-                 #because the subscriber was the one who wanted that
-                 #limit in the first place
+                 #too many redirections. I think this is for older versions
+                 #of httplib2.
                 return None
             if simplejson.loads(response[1]).get('status') != 'accepted':
                 return response
