@@ -19,19 +19,10 @@ class EventSenderThread(Thread):
         Thread.__init__(self)
         self.setDaemon(True)
         
-    def process_event(self, subscriber):
+    def process_event(self, top_event, subscriber):
         """Actually send the first message to this subscriber."""
         try:
             try:
-                try:
-                    self._lock.acquire()                    
-                    subscribers = self.subscribers[subscriber]
-                    if not len(subscribers):
-                        return
-                    top_event = subscribers[0]
-                finally:
-                    self._lock.release()                    
-
                 response = top_event.handle()
                 if not response: #yes, response is backwards on purpose
                     self.log ("Sent event to %s" % top_event.subscriber.url)
@@ -88,8 +79,19 @@ class EventSenderThread(Thread):
                     continue
                 while len(self.subscription_running) > MAX_THREADS:
                     time.sleep(0.01)
-                self.subscription_running.add(subscriber)
-                Thread(target=self.process_event, args=(subscriber,)).run()
+                
+                #get the top event for this subscriber
+                try:
+                    self._lock.acquire()
+                    subs = self.subscribers[subscriber]
+                    if not len(subs):
+                        continue #no events
+                    top_event = subs[0]
+                finally:
+                    self._lock.release()
+
+                self.subscription_running.add(subscriber)                    
+                Thread(target=self.process_event, args=(top_event, subscriber)).run()
             time.sleep(0.01)
         
     def stop(self):
