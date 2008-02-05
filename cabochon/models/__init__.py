@@ -17,19 +17,22 @@
 # Boston, MA  02110-1301
 # USA
 
-import socket
-import sys
-from sqlobject import *
-from pylons.database import PackageHub
-from pickle import dumps, loads
-import simplejson
+from datetime import datetime
 from paste.util.multidict import MultiDict
-import urllib
+from pickle import dumps, loads
+from pylons import config
+from pylons.database import PackageHub
+from sqlobject import *
+from wsseauth import wsse_header
 import httplib2
 import logging
-from wsseauth import wsse_header
-from pylons import config
 import re
+import simplejson
+import socket
+import sys
+import urllib
+
+MAX_SEND_FAILURES=5
 
 log = logging.getLogger('cabochon')
 
@@ -96,6 +99,28 @@ class Subscriber(SQLObject):
         else:
             return []
 
+class FailedEvent(SQLObject):
+    class sqlmeta:
+       createSQL = {'mysql' :
+                    ['alter table pending_event engine InnoDB;']
+                    }
+    event_type = ForeignKey('EventType', cascade=True)
+    subscriber = ForeignKey('Subscriber')
+    data = StringCol()
+    last_response = UnicodeCol(default="") #for debugging, the last thing we got when we tried to send this
+    failures = IntCol(default=0)
+    last_sent = DateTimeCol()
+
+    def reenqueue(self):
+        PendingEvent(event_type=self.event_type, subscriber=self.subscriber,data=self.data) 
+        self.destroySelf()
+
+    def _set_data(self, value):
+        return self._SO_set_data(dumps(value))
+
+    def _get_data(self):
+        return loads(self._SO_get_data())
+
 class PendingEvent(SQLObject):
     class sqlmeta:
        createSQL = {'mysql' :
@@ -106,6 +131,7 @@ class PendingEvent(SQLObject):
     data = StringCol()
     last_response = UnicodeCol(default="") #for debugging, the last thing we got when we tried to send this
     failures = IntCol(default=0)
+    last_sent = DateTimeCol(default=datetime.now)
     
     def _set_data(self, value):
         return self._SO_set_data(dumps(value))
@@ -168,6 +194,18 @@ class PendingEvent(SQLObject):
         __traceback_info__ = '%s %s (%i bytes in body)' % (sub.method, self.url, len(body))
         log.info('Sending event %s %s (%i bytes in body, id=%s' % (self.url, sub.method, len(body), self.id))
 
+        self.last_sent = datetime.now()            
+        self.failures += 1 #if we succeed, we won't care that someone called
+                           #us a failure
+
+        if self.failures > MAX_SEND_FAILURES:
+            #give up
+            fields = self.sqlmeta.asDict()
+            del fields['id']
+            FailedEvent(**fields)
+            return None
+            
+        
         try:
             response = h.request(self.url, method=sub.method, body=body, headers=headers, redirections=sub.redirections)
         except socket.error, e:
@@ -190,8 +228,8 @@ class PendingEvent(SQLObject):
             return response
         except AttributeError:
             return response        
-        
-soClasses=[EventType,Subscriber, PendingEvent]
+
+soClasses=[EventType, Subscriber, PendingEvent, FailedEvent]
 
 
 def do_in_transaction(func, *args, **kw):

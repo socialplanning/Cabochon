@@ -21,7 +21,7 @@ from paste.deploy import appconfig
 
 from cabochon.config.environment import load_environment
 from cabochon.models import *
-
+from datetime import datetime
 
 def setup_config(command, filename, section, vars):
     """
@@ -29,6 +29,25 @@ def setup_config(command, filename, section, vars):
     """
     conf = appconfig('config:' + filename)
     load_environment(conf.global_conf, conf.local_conf)
+
+    #migration: last_sent.
+    try:
+        conn = PendingEvent._connection
+        sqlmeta = PendingEvent.sqlmeta
+        last_sent = DateTimeCol("last_sent", default=datetime.now).withClass(PendingEvent)
+        failures = IntCol("failures", default=0).withClass(PendingEvent)
+        
+        conn.addColumn(sqlmeta.table, last_sent)
+        conn.addColumn(sqlmeta.table, failures)
+
+        #set values for existing instances
+        for event in PendingEvent.select():
+            event.last_sent = datetime.now()
+            event.failures = 0
+            
+    except dberrors.OperationalError:
+        #already migrated
+        pass
 
     #you'll need these when you need to zap tables
 #    for table in soClasses[::-1]:

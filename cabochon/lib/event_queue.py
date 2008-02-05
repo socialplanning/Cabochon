@@ -1,4 +1,5 @@
 from cabochon.models import *
+from datetime import datetime
 from threading import Thread, enumerate, Lock
 
 import traceback
@@ -86,7 +87,16 @@ class EventSenderThread(Thread):
                     subs = self.subscribers[subscriber]
                     if not len(subs):
                         continue #no events
-                    top_event = subs[0]
+                    #find an event we can send, if any
+                    top_event = None
+                    for event in subs:
+                        since_last_sent = datetime.now() - event.last_sent
+                        if since_last_sent.seconds < 2 ** event.failures:
+                            continue
+                        top_event = event
+                        break
+                    if not top_event:
+                        break
                 finally:
                     self._lock.release()
 
