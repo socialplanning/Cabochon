@@ -21,6 +21,7 @@ cache_dir = %(here)s/data
 session.key = cabochon
 ## FIXME: this should be auto-generated
 session.secret = somesecret
+topp_admin_info_filename = {{env.config.get('general', 'admin_info_filename')}}
 
 sqlobject.dburi = {{config.db_sqlobject}}
 database = {{config.db_sqlobject}}

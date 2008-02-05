@@ -1,3 +1,4 @@
+from cabochon.lib.basic_auth import BasicAuthMiddleware
 from paste import httpexceptions
 from paste.cascade import Cascade
 from paste.urlparser import StaticURLParser
@@ -53,11 +54,13 @@ def make_app(global_conf, full_stack=True, **app_conf):
     # Put your own middleware here, so that any problems are caught by the error
     # handling middleware underneath
 
+    app = BasicAuthMiddleware(app, config)
+
     #optional security
     username = config.get('username', None)
     password = config.get('password', None)
     if username:
-        app = WSSEAuthMiddleware(app, {username : password}, required=True)
+        app = WSSEAuthMiddleware(app, {username : password}, required=False)
             
     # If errror handling and exception catching will be handled by middleware
     # for multiple apps, you will want to set full_stack = False in your config
