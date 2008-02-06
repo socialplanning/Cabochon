@@ -63,6 +63,7 @@ class Subscriber(SQLObject):
     version = StringCol(default=u'')
 
     pending_events = MultipleJoin('PendingEvent', orderBy='id')
+    failed_events = MultipleJoin('PendingEvent', orderBy='id')
 
     def _set_url(self, value):
         assert value.startswith('http'), 'bad subscriber url "%s"' % value
@@ -98,6 +99,13 @@ class Subscriber(SQLObject):
                 return []
         else:
             return []
+
+    def destroySelf(self):
+        for event in self.pending_events:
+            event.destroySelf()
+        for event in self.failed_events:
+            event.destroySelf()            
+        super(Subscriber, self).destroySelf()
 
 class FailedEvent(SQLObject):
     class sqlmeta:
