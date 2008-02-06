@@ -30,6 +30,12 @@ def setup_config(command, filename, section, vars):
     conf = appconfig('config:' + filename)
     load_environment(conf.global_conf, conf.local_conf)
 
+    #you'll need these when you need to zap tables
+#    for table in soClasses[::-1]:
+#        table.dropTable(ifExists=True)
+    for table in soClasses:
+        table.createTable(ifNotExists=True)
+
     #migration: last_sent.
     try:
         conn = PendingEvent._connection
@@ -49,8 +55,3 @@ def setup_config(command, filename, section, vars):
         #already migrated
         pass
 
-    #you'll need these when you need to zap tables
-#    for table in soClasses[::-1]:
-#        table.dropTable(ifExists=True)
-    for table in soClasses:
-        table.createTable(ifNotExists=True)
