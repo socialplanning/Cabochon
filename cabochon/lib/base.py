@@ -16,14 +16,15 @@ class BaseController(WSGIController):
         # is under environ['pylons.routes_dict'] should you want to check
         # the action or route vars here
 
-        try:
-            self.params = {}
-            for param, value in request.params.items():
-                self.params[param] = loads(value)
-        except ValueError:
-            g.log("Bogus event %r" % request.params)
-            #rejecting it won't help -- they'll just send it again
-            return WSGIResponse(code=200, content='{"status" : "accepted"}') 
+        if environ['pylons.routes_dict']['controller'] != 'admin':
+            try:
+                self.params = {}
+                for param, value in request.params.items():
+                    self.params[param] = loads(value)
+            except ValueError:
+                g.log("Bogus event %r" % request.params)
+                #rejecting it won't help -- they'll just send it again
+                return WSGIResponse(code=200, content='{"status" : "accepted"}') 
         return WSGIController.__call__(self, environ, start_response)
 
 # Include the '_' function in the public names

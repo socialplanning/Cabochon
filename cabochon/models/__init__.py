@@ -157,6 +157,11 @@ class PendingEvent(SQLObject):
 
         return self.url_template_re.sub(lambda m: data.get(m.group(1)), original_url)
 
+    def fail(self):
+        fields = self.sqlmeta.asDict()
+        del fields['id']
+        FailedEvent(**fields)
+
     def handle(self):
         """NOTE: The result of this function is *backwards*.  It
         returns None for success.  Just like C.
@@ -207,10 +212,7 @@ class PendingEvent(SQLObject):
                            #us a failure
 
         if self.failures > MAX_SEND_FAILURES:
-            #give up
-            fields = self.sqlmeta.asDict()
-            del fields['id']
-            FailedEvent(**fields)
+            self.fail()
             return None
             
         

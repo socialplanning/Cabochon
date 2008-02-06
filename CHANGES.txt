@@ -1,0 +1,5 @@
+February 5, 2008 - David Turner <novalis@novalis.org> - Failing events
+   now retry with exponential backoff.
+
+February 6, 2008 - David Turner <novalis@novalis.org> - Added admin
+   console.
