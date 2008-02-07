@@ -4,11 +4,10 @@ class BasicAuthMiddleware:
     def __init__(self, app, config):
         self.app = app
         
-        self.not_set_up = False
         assert 'topp_admin_info_filename' in config
             
         admin_file = config['topp_admin_info_filename']
-        self.username, self.password = file(admin_file).read().strip().split(":")        
+        self.username, self.password = file(admin_file).read().strip().split(":")
 
         
     def __call__(self, environ, start_response):
@@ -26,6 +25,6 @@ class BasicAuthMiddleware:
             head = [('WWW-Authenticate', 'Basic realm="cabochon"')]
             raise httpexceptions.HTTPUnauthorized(headers=head)
 
-        
+        environ = environ.copy()
         environ['REMOTE_USER'] = username
         return self.app(environ, start_response)
