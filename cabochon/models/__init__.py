@@ -32,7 +32,9 @@ import socket
 import sys
 import urllib
 
-MAX_SEND_FAILURES=5
+#The maximum number of times we'll try to send an event before we give up.
+#Time taken will be 2**(MAX_SEND_FAILURES+1) seconds or so
+MAX_SEND_FAILURES=17
 
 log = logging.getLogger('cabochon')
 
