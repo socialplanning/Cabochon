@@ -55,3 +55,6 @@ def setup_config(command, filename, section, vars):
         #already migrated
         pass
 
+    #there is always a universal event
+    if not EventType.selectBy(name="*").count():
+        EventType(name="*")
