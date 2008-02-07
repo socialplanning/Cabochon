@@ -59,13 +59,13 @@ class EventController(BaseController):
         log = logging.getLogger('cabochon')
         log.info ("Got event %s" % event.name)
         sender = g.event_sender
-        for s in event.subscribers:
+        for s in event.subscribers + universalEvent().subscribers:
             log.info ("Enqueueing event %s for %s" % (event.name, s.url))
             e = PendingEvent(event_type = event, subscriber = s, data=data)
             sender.add_pending_event(s, e)
             
     def do_fire(self, id):
-        """Fire an event by id"""        
+        """Fire an event by id"""
         event = EventType.get(id)
         do_in_transaction(lambda:self._insert_events(event, self.params))
 

@@ -45,7 +45,8 @@ class TestCabochonController(TestController):
     def setUp(self):
         test_server.server_fixture.clear()
         for e in EventType.select():
-            e.destroySelf()
+            if not e.name == "*":
+                e.destroySelf()
         for s in Subscriber.select():
             s.destroySelf()
         for p in PendingEvent.select():
