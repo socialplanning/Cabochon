@@ -12,6 +12,8 @@ class BasicAuthMiddleware:
 
         
     def __call__(self, environ, start_response):
+        if 'REMOTE_USER' in environ:
+            return self.app(environ, start_response)
 
         if not 'HTTP_AUTHORIZATION' in environ:
             head = [('WWW-Authenticate', 'Basic realm="cabochon"')]
