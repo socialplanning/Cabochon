@@ -44,11 +44,23 @@ __connection__ = hub
 
 #a named type of event
 class EventType(SQLObject):
+    """Represents a named event type, such as edit_page"""
     name = UnicodeCol(default="", unique=True, length=255)
     subscribers = MultipleJoin('Subscriber')
 
+_universal = None
+def universalEvent():
+    """Returns the event with name"*", whose subscribers should get all
+    messages"""
+    global _universal
+    if not _universal:
+        _universal = EventType.selectBy(name="*")[0]
+    return _universal
+
+
 #a subscription
 class Subscriber(SQLObject):
+    """Represents a subscription to an event type"""
     event_type = ForeignKey('EventType',cascade=True)
     url = UnicodeCol(default=u"")
     method = StringCol(default=u"POST")
@@ -108,6 +120,7 @@ class Subscriber(SQLObject):
         super(Subscriber, self).destroySelf()
 
 class FailedEvent(SQLObject):
+    """An event we have given up on.  It can be reenqueued"""    
     class sqlmeta:
        createSQL = {'mysql' :
                     ['alter table pending_event engine InnoDB;']
@@ -130,6 +143,8 @@ class FailedEvent(SQLObject):
         return loads(self._SO_get_data())
 
 class PendingEvent(SQLObject):
+    """An event in the queue.  It will be resent until it's accepted
+    or we give up."""
     class sqlmeta:
        createSQL = {'mysql' :
                     ['alter table pending_event engine InnoDB;']
@@ -243,17 +258,18 @@ soClasses=[EventType, Subscriber, PendingEvent, FailedEvent]
 
 
 def do_in_transaction(func, *args, **kw):
-      old_conn = hub.getConnection()
-      conn = old_conn.transaction()
-      hub.threadConnection = conn
-      try:
-          try:
-              value = func(*args, **kw)
-          except:
-              conn.rollback()
-              raise
-          else:
-              conn.commit()
-              return value
-      finally:
-          hub.threadConnection = old_conn
+    """Run a function in a database transaction"""
+    old_conn = hub.getConnection()
+    conn = old_conn.transaction()
+    hub.threadConnection = conn
+    try:
+        try:
+            value = func(*args, **kw)
+        except:
+            conn.rollback()
+            raise
+        else:
+            conn.commit()
+            return value
+    finally:
+        hub.threadConnection = old_conn
