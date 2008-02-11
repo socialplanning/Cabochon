@@ -27,7 +27,7 @@ import logging
 class AdminController(BaseController):
     def index(self):
         """Return a page displaying everything."""
-        c.subscribers = Subscriber.select()
+        c.subscribers = Subscriber.select().orderBy("url")
         return render("admin")
 
     def pending_events(self):

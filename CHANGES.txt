@@ -3,3 +3,6 @@ February 5, 2008 - David Turner <novalis@novalis.org> - Failing events
 
 February 6, 2008 - David Turner <novalis@novalis.org> - Added admin
    console.
+
+February 11, 2008 - David Turner <novalis@novalis.org> - Added debug
+   client, improved admin console.
