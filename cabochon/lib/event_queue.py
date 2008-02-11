@@ -90,6 +90,8 @@ class EventSenderThread(Thread):
                     #find an event we can send, if any
                     top_event = None
                     for event in subs:
+                        if not event.last_sent:
+                            event.last_sent = datetime.now()
                         since_last_sent = datetime.now() - event.last_sent
                         if since_last_sent.seconds < 2 ** event.failures:
                             continue
