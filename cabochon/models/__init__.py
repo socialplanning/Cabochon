@@ -77,7 +77,7 @@ class Subscriber(SQLObject):
     version = StringCol(default=u'')
 
     pending_events = MultipleJoin('PendingEvent', orderBy='id')
-    failed_events = MultipleJoin('PendingEvent', orderBy='id')
+    failed_events = MultipleJoin('FailedEvent', orderBy='id')
 
     def _set_url(self, value):
         assert value.startswith('http'), 'bad subscriber url "%s"' % value

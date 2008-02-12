@@ -64,6 +64,12 @@ class AdminController(BaseController):
           return redirect_to(action="failed_events")
 
     @restrict('POST')
+    def retry_all_failed_events(self, id):
+          for event in Subscriber.get(id).failed_events:
+              event.reenqueue()
+          return redirect_to(action="index")
+
+    @restrict('POST')
     def fail_pending_event(self, id):
           e = PendingEvent.get(id)
           e.fail()

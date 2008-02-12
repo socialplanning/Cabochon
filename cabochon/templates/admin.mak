@@ -13,7 +13,7 @@
 <td>${subscriber.url}</td>
 <td>${subscriber.id}</td>
 <td>${len(subscriber.pending_events)}</td>
-<td>${len(subscriber.pending_events)}</td>
+<td>${len(subscriber.failed_events)}</td>
 <td>${h.secure_button_to("unsubscribe", h.url_for(action="unsubscribe", id=subscriber.id))}</td>
 <td>${h.secure_button_to("retry all failed events", h.url_for(action="retry_all_failed_events", id=subscriber.id))}</td>
 </tr>
