@@ -78,7 +78,7 @@ def make_app(global_conf, full_stack=True, **app_conf):
     
         # Display error documents for 401, 403, 404 status codes (if debug is disabled also
         # intercepts 500)
-        app = ErrorDocuments(app, global_conf, mapper=error_mapper, **app_conf)
+        #app = ErrorDocuments(app, global_conf, mapper=error_mapper, **app_conf)
     
     # Establish the Registry for this application
     app = RegistryManager(app)
