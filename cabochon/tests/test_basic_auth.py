@@ -26,9 +26,10 @@ def test_basic_auth():
     environ['HTTP_AUTHORIZATION'] = "Basic %s" % encoded
     middleware = BasicAuthMiddleware(success_app, config)
 
-    failed = False
-    try:
-        middleware(environ, None)
-    except httpexceptions.HTTPUnauthorized:
-        failed = True
-    assert failed
+    response = [None]
+    def start_response(code, headers):
+        assert code == "401 Unauthorized"
+        assert headers == [('WWW-Authenticate', 'Basic realm="cabochon"')]
+        response[0] = 1
+    middleware(environ, start_response)
+    assert response[0] == 1

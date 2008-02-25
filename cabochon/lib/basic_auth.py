@@ -1,5 +1,3 @@
-from paste import httpexceptions
-
 class BasicAuthMiddleware:
     def __init__(self, app, config):
         self.app = app
@@ -16,14 +14,16 @@ class BasicAuthMiddleware:
 
         if not 'HTTP_AUTHORIZATION' in environ:
             head = [('WWW-Authenticate', 'Basic realm="cabochon"')]
-            raise httpexceptions.HTTPUnauthorized(headers=head)
+            start_response("401 Unauthorized", head)
+            return []
             
         basic, encoded = environ['HTTP_AUTHORIZATION'].split(" ")
         if basic != "Basic": return False
-        username, password = encoded.decode("base64").split(":")
+        username, password = encoded.decode("base64").split(":", 1)
         if not (username == self.username and password == self.password):
             head = [('WWW-Authenticate', 'Basic realm="cabochon"')]
-            raise httpexceptions.HTTPUnauthorized(headers=head)
+            start_response("401 Unauthorized", head)
+            return []
 
         environ = environ.copy()
         environ['REMOTE_USER'] = username
