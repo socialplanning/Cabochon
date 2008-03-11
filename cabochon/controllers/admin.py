@@ -24,6 +24,20 @@ from pylons.decorators.rest import restrict
 from webhelpers.pagination import paginate, links
 import logging
 
+
+from types import ClassType
+
+def isclass(object):
+    return type(object) is ClassType or hasattr(object, '__bases__')
+        
+
+garbage_count = 0
+import re
+nowhere_re = re.compile(" at 0x[0-9a-f]+")
+def nowhere(obj):
+    objstr = repr(obj)
+    return nowhere_re.sub('', objstr)
+
 class AdminController(BaseController):
     def index(self):
         """Return a page displaying everything."""
@@ -85,3 +99,32 @@ class AdminController(BaseController):
         c.data = e.data
         c.event = e
         return render("event_details")
+
+    def dump_memory(self):
+        from MySQLdb import DBAPISet
+        global garbage_count
+        f = open("/tmp/garbage-%d" % garbage_count, "wb")
+        garbage_count += 1
+
+        import gc
+        gc.collect()
+        objects = gc.get_objects()
+        for object in objects:
+            if isclass(object):
+                continue
+            if (not isinstance(object, DBAPISet)) and object == objects:
+                continue
+            try:
+                if isinstance(object, dict):
+                    print >>f, "%s at %d" % (len(object), id(object))
+                else:
+                    #if ((not isinstance(object, tuple)) and
+                    #    (not str(object.__class__) == "<type 'function'>") and
+                    #    (not isinstance(object, list))):
+                    #    print object.__class__
+                    print >>f, "%s   %s" % (object.__class__, nowhere(object))
+            except:
+                print >>f, "<threadlocal at %s>" % id(object)
+        del objects
+        f.close()
+
