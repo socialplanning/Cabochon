@@ -12,8 +12,24 @@ from pylons.middleware import ErrorHandler, ErrorDocuments, StaticJavascripts, e
 import pylons.wsgiapp
 
 from cabochon.config.environment import load_environment
+from cabochon.models import *
 import cabochon.lib.helpers
 import cabochon.lib.app_globals as app_globals
+
+def subscribe_by_name(event, url):
+    """Subscribe a given URL to the event with the given name."""
+    try:
+        event_type = EventType.selectBy(name=event)[0]
+    except IndexError:
+        event_type = EventType(name=event)
+
+    subscriber = Subscriber.selectBy(event_type=event_type, url=url)
+    try:
+        subscriber = subscriber[0]
+        subscriber.set(url=url)
+    except IndexError:
+        subscriber = Subscriber(event_type=event_type, url=url, method="POST")
+
 
 def make_app(global_conf, full_stack=True, **app_conf):
     """Create a Pylons WSGI application and return it
@@ -36,6 +52,22 @@ def make_app(global_conf, full_stack=True, **app_conf):
 
     # Load our Pylons configuration defaults
     load_environment(global_conf, app_conf)
+
+
+
+    # initialize list of subscribers
+    subscriber_list_filename = config.get('subscriber_list_filename')
+    if subscriber_list_filename is not None:
+        try:
+            f = open(subscriber_list_filename)
+            for line in f:
+                line = line.strip()
+                event, subscriber = line.split()[:2]
+                assert subscriber.startswith("http"), "Subscriber url must start with http: '%s'" % subscriber
+                subscribe_by_name(event, subscriber)
+        except IOError:
+            pass
+
         
     # Load our default Pylons WSGI app and make g available
     app = pylons.wsgiapp.PylonsApp()
