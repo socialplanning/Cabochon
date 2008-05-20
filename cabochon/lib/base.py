@@ -17,9 +17,9 @@ class BaseController(WSGIController):
         # the action or route vars here
 
         if environ['pylons.routes_dict']['controller'] == 'admin':
-            if not environ.get('x-wsgiorg.developer_user'):
-                start_response("403 Forbidden", [])
-                return ["Only devauth auth is accepted for admin functions."]
+            if not environ['AUTHENTICATION_METHOD'] == 'Basic':
+                start_response("401 Unauthorized", [])
+                return ["Only basic auth as admin is accepted for admin functions."]
         else:
             try:
                 self.params = {}
