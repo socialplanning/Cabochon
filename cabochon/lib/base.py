@@ -16,7 +16,11 @@ class BaseController(WSGIController):
         # is under environ['pylons.routes_dict'] should you want to check
         # the action or route vars here
 
-        if environ['pylons.routes_dict']['controller'] != 'admin':
+        if environ['pylons.routes_dict']['controller'] == 'admin':
+            if not environ.get('x-wsgiorg.developer_user'):
+                start_response("403 Forbidden", [])
+                return ["Only devauth auth is accepted for admin functions."]
+        else:
             try:
                 self.params = {}
                 for param, value in request.params.items():

@@ -30,4 +30,5 @@ class BasicAuthMiddleware:
 
         environ = environ.copy()
         environ['REMOTE_USER'] = username
+        environ['AUTHENTICATION_METHOD'] = 'Basic'
         return self.app(environ, start_response)
