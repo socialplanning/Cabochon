@@ -10,7 +10,7 @@ setup(
     author_email="novalis@openplans.org",
     url="http://www.openplans.org/projects/cabochon",
     license="GPLv2 or any later version",
-    install_requires=["Pylons>=0.9.5", "SQLObject", "restclient", "wsgiutils", "httplib2", "simplejson", "WSSEAuth"],
+    install_requires=["Pylons>=0.9.5", "SQLObject", "restclient", "wsgiutils", "httplib2", "simplejson", "WSSEAuth", "DevAuth"],
     packages=find_packages(),
     include_package_data=True,
     test_suite = 'nose.collector',
@@ -21,4 +21,7 @@ setup(
     [paste.app_install]
     main=pylons.util:PylonsInstaller
     """,
+    dependency_links = [
+      "https://svn.openplans.org/svn/DevAuth/trunk#egg=DevAuth",
+    ]
 )
