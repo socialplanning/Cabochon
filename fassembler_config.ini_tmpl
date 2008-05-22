@@ -14,7 +14,7 @@ use = egg:Paste#http
 host = {{config.host}}
 port = {{config.port}}
 
-[app:main]
+[app:cabochon]
 use = egg:Cabochon
 ## FIXME: I'd prefer some kind of scratch directory
 cache_dir = %(here)s/data
@@ -32,6 +32,15 @@ log_file = {{env.var}}/logs/cabochon/cabochon.log
 password_file = {{config.cabochon_user_info}}
 
 subscriber_list_filename = {{env.var}}/cabochon_subscribers.cfg
+
+
+[filter:devauth] 
+use = egg:DevAuth 
+password_file = {{env.var}}/cabochon/developers.htpasswd 
+secret_file = {{env.var}}/secret.txt 
+
+[pipeline:main] 
+pipeline = devauth main
 
 # If you'd like to fine-tune the individual locations of the cache data dirs
 # for Myghty, the Cache data, or the Session saves, un-comment the desired
