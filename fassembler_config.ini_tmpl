@@ -40,7 +40,7 @@ password_file = {{env.var}}/cabochon/developers.htpasswd
 secret_file = {{env.var}}/secret.txt 
 
 [pipeline:main] 
-pipeline = devauth main
+pipeline = devauth cabochon
 
 # If you'd like to fine-tune the individual locations of the cache data dirs
 # for Myghty, the Cache data, or the Session saves, un-comment the desired
