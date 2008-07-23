@@ -237,7 +237,7 @@ class PendingEvent(SQLObject):
             response = h.request(self.url, method=sub.method, body=body, headers=headers, redirections=sub.redirections)
         except socket.error, e:
             print >> sys.stderr, 'Error doing %s %s (body length: %i bytes)' % (self.url, sub.method, len(body))
-            raise
+            return "%s" % e, ''
         except httplib2.RedirectLimit:
             #too many redirections. Treat the request as handled,
             #because the subscriber was the one who wanted that
