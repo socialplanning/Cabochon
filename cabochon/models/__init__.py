@@ -129,7 +129,7 @@ class FailedEvent(SQLObject):
                     }
     event_type = ForeignKey('EventType', cascade=True)
     subscriber = ForeignKey('Subscriber')
-    data = StringCol()
+    data = BLOBCol()
     last_response = UnicodeCol(default="") #for debugging, the last thing we got when we tried to send this
     failures = IntCol(default=0)
     last_sent = DateTimeCol()
@@ -153,7 +153,7 @@ class PendingEvent(SQLObject):
                     }
     event_type = ForeignKey('EventType', cascade=True)
     subscriber = ForeignKey('Subscriber')
-    data = StringCol()
+    data = BLOBCol()
     last_response = UnicodeCol(default="") #for debugging, the last thing we got when we tried to send this
     failures = IntCol(default=0)
     last_sent = DateTimeCol(default=datetime.now)
