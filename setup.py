@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Cabochon',
-    version="",
+    version="0.2",
     #description="",
     author="David Turner",
     author_email="novalis@openplans.org",
