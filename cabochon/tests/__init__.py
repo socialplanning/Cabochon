@@ -23,7 +23,7 @@ from routes import request_config, url_for
 
 test_file = os.path.join(conf_dir, 'test.ini')
 cmd = paste.script.appinstall.SetupCommand('setup-app')
-cmd.run([test_file])
+cmd.run([test_file, "--name", "cabochon"])
 
 class TestController(TestCase):
     def __init__(self, *args):

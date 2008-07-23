@@ -4,6 +4,7 @@ from paste.cascade import Cascade
 from paste.urlparser import StaticURLParser
 from paste.registry import RegistryManager
 from paste.deploy.converters import asbool
+from supervisorerrormiddleware import SupervisorErrorMiddleware
 from wsseauth import WSSEAuthMiddleware
 
 from pylons import config
@@ -98,6 +99,8 @@ def make_app(global_conf, full_stack=True, **app_conf):
         required = not 'topp_admin_info_filename' in config    
         app = WSSEAuthMiddleware(app, {username : password}, required=required)
             
+    app = SupervisorErrorMiddleware(app)
+
     # If errror handling and exception catching will be handled by middleware
     # for multiple apps, you will want to set full_stack = False in your config
     # file so that it can catch the problems.

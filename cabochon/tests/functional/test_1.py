@@ -52,7 +52,7 @@ class TestCabochonController(TestController):
         for p in PendingEvent.select():
             p.destroySelf()            
 
-        wsgiapp = loadapp('config:test.ini', relative_to=self.conf_dir)
+        wsgiapp = loadapp('config:test.ini#cabochon', relative_to=self.conf_dir)
         self.app = paste.fixture.TestApp(wsgiapp)
         old_post = self.app.post
         self.app.post = jsonpost(old_post)
