@@ -76,7 +76,7 @@ class Subscriber(SQLObject):
     follow_all_redirects = BoolCol(default=False)
     version = StringCol(default=u'')
 
-    pending_events = MultipleJoin('PendingEvent', orderBy="failures, last_sent")
+    pending_events = MultipleJoin('PendingEvent', orderBy="failures")
     failed_events = MultipleJoin('FailedEvent', orderBy='id')
 
     def _set_url(self, value):
