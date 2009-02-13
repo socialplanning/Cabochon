@@ -185,8 +185,6 @@ class PendingEvent(SQLObject):
         """
         sub = self.subscriber
         params = dict(sub.params)
-        if not params:
-            params = {}
         params.update(self.data)
         h = httplib2.Http()
         h.follow_all_redirects = sub.follow_all_redirects
