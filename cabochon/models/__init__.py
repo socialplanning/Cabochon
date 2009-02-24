@@ -74,6 +74,7 @@ class Subscriber(SQLObject):
     headers = StringCol(default=u'')
     redirections = IntCol(default=5)
     follow_all_redirects = BoolCol(default=False)
+    critical = BoolCol(default=True)
     version = StringCol(default=u'')
 
     pending_events = MultipleJoin('PendingEvent', orderBy="failures")
@@ -242,17 +243,21 @@ class PendingEvent(SQLObject):
             #limit in the first place
             return None            
             
-        try:
-            if response[0]['status'] == '303':
-                 #too many redirections. I think this is for older versions
-                 #of httplib2.
-                return None
-            if simplejson.loads(response[1]).get('status') != 'accepted':
-                return response
-        except ValueError:
+        #303 -> too many redirections. I think this is for
+        #older versions of httplib2.
+        success_codes = dict.fromkeys(('303', '200', '201'))
+        response_code = response[0]['status']
+        if response_code in success_codes:
+            if response_code != '303' and sub.critical:
+                # we're a 'critical' subscriber, so we need to see an
+                # explicit confirmation we were rec'd in the body of the
+                # response
+                jsonbody = simplejson.loads(response[1])
+                if jsonbody.get('status') != 'accepted':
+                    return response
+            return None
+        else:
             return response
-        except AttributeError:
-            return response        
 
 soClasses=[EventType, Subscriber, PendingEvent, FailedEvent]
 

@@ -17,7 +17,7 @@ from cabochon.models import *
 import cabochon.lib.helpers
 import cabochon.lib.app_globals as app_globals
 
-def subscribe_by_name(event, url):
+def subscribe_by_name(event, url, critical=None):
     """Subscribe a given URL to the event with the given name."""
     try:
         event_type = EventType.selectBy(name=event)[0]
@@ -30,6 +30,9 @@ def subscribe_by_name(event, url):
         subscriber.set(url=url)
     except IndexError:
         subscriber = Subscriber(event_type=event_type, url=url, method="POST")
+    if critical is not None:
+        # None -> use the database default
+        subscriber.critical = critical
 
 
 def make_app(global_conf, full_stack=True, **app_conf):
@@ -63,9 +66,14 @@ def make_app(global_conf, full_stack=True, **app_conf):
             f = open(subscriber_list_filename)
             for line in f:
                 line = line.strip()
-                event, subscriber = line.split()[:2]
+                splitline = line.split()
+                event, subscriber = splitline[:2]
+                if len(splitline) == 3:
+                    critical = asbool(splitline[2])
+                else:
+                    critical = None
                 assert subscriber.startswith("http"), "Subscriber url must start with http: '%s'" % subscriber
-                subscribe_by_name(event, subscriber)
+                subscribe_by_name(event, subscriber, critical)
         except IOError:
             pass
 
