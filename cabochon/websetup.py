@@ -55,6 +55,22 @@ def setup_config(command, filename, section, vars):
         #already migrated
         pass
 
+    #migration: critical.
+    try:
+        conn = Subscriber._connection
+        sqlmeta = Subscriber.sqlmeta
+        critical = BoolCol("critical", default=True).withClass(Subscriber)
+
+        conn.addColumn(sqlmeta.table, critical)
+
+        #set values for existing instances
+        for subscriber in Subscriber.select():
+            subscriber.critical = True
+
+    except dberrors.OperationalError:
+        #already migrated
+        pass
+
     #there is always a universal event
     if not EventType.selectBy(name="*").count():
         EventType(name="*")
