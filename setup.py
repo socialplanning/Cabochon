@@ -11,6 +11,7 @@ setup(
     url="http://www.openplans.org/projects/cabochon",
     license="GPLv2 or any later version",
     install_requires=[
+        "Routes==1.11",
         "Pylons==0.9.6.2",
         "SQLObject", 
         "restclient", 
