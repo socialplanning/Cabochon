@@ -32,8 +32,4 @@ setup(
     [paste.app_install]
     main=pylons.util:PylonsInstaller
     """,
-    dependency_links = [
-      "https://svn.openplans.org/svn/DevAuth/trunk#egg=DevAuth",
-      "https://svn.openplans.org/svn/SupervisorErrorMiddleware/trunk#egg=SupervisorErrorMiddleware-dev",
-    ]
-)
+    )
